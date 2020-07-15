@@ -1,0 +1,8 @@
+{
+  "name": "specmod",
+  "version": "0.0.1",
+  "label": "makes spec awesome",
+  "url": "github.com/leite/specmod",
+  "description": "specmod",
+  "dependencies": ["0ad=0.0.23"]
+}

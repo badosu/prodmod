@@ -1,55 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<!-- wood food metal stone market people player  -->
-<object type="text" name="teamMenu" size="0 0 50% 60" textcolor="white" hidden="true" z="90"> <!-- 100% -->
-
+<object type="text" name="productionContainer" size="6 84 50% 74" textcolor="white" hidden="true">
   <repeat count="8" var="i">
-    <object name="teamMenuPlayer[i]" type="text" size="0 0 100% 33" hidden="true" sprite="BgBlueDark" z="90"> <!-- 40% -->
+    <object name="productionRow[i]" type="text" size="0 0 100% 0">
+      <object name="productionRow[i]Ind" type="text" size="0 1 6 35" />
 
-      <repeat count="8" var="j">
-        <object name="teamMenuPlayer[i]Item[j]" size="0 3 60 33" type="text" hidden="false">
-          <object name="teamMenuPlayer[i]Item[j]Btn" size="0 0 30 30" type="button" hidden="false" sprite="BackgroundDarken">
-            <object name="teamMenuPlayer[i]Item[j]Icon" type="image" ghost="true"/>
-          </object>
-          <object name="teamMenuPlayer[i]Item[j]SubBtn" size="24 17 40 33" type="button" hidden="true">
-            <object name="teamMenuPlayer[i]Item[j]SubIcon" type="image"/>
-          </object>
-          <!--  30 3 60 19 -->
-          <object name="teamMenuPlayer[i]Item[j]Title" size="28 3 60 19" textcolor="white" type="button"
-            hidden="false" font="sans-bold-stroke-12" text_align="left" text_valign="bottom">
-          </object>
-          <!--  30 18 60 32 -->
-          <object name="teamMenuPlayer[i]Item[j]Subtitle" size="28 18 60 32" textcolor="white" type="text"
-            hidden="false" font="sans-stroke-12" text_align="left" text_valign="bottom">
-          </object>
+      <repeat count="20" var="j">
+        <object name="productionRow[i]Item[j]Btn" size="0 0 34 37" type="button" tooltip_style="sessionToolTipBottom" style="iconButton" hidden="true">
+          <object name="productionRow[i]Item[j]Icon" size="3 3 31 31" type="image" ghost="true"/>
+          <object name="productionRow[i]Item[j]Count" size="3 3 31 33" style="notificationPanel" type="text" ghost="true"/>
+          <object name="productionRow[i]Item[j]Prg" sprite="BgBlueDark" size="3 31 3 33" type="image" hidden="true" />
         </object>
       </repeat>
-      <!--
-      <object name="teamMenuPlayer[i]Item[7]" size="0 0 200 33" type="text" hidden="false">
-        <object name="teamMenuPlayer[i]Item[7]Btn" size="0 0 33 33" type="button" hidden="false">
-          <object name="teamMenuPlayer[i]Item[7]Icon" type="image" ghost="true"/>
-        </object>
-        <object name="teamMenuPlayer[i]Item[7]AgeBtn" size="24 17 40 33" type="button" hidden="false">
-          <object name="teamMenuPlayer[i]Item[7]Age" type="image"/>
-        </object>
-
-          <object name="teamMenuPlayer[i]Item[7]Name" size="30 3 160 21" textcolor="white" type="button"
-            hidden="false" font="sans-bold-stroke-12" text_align="right" text_valign="bottom">
-          </object>
-
-        <object name="teamMenuPlayer[i]Item[7]Subtext" size="30 18 160 35" textcolor="white" type="text"
-          hidden="false" font="sans-stroke-12" text_align="right" text_valign="bottom">
-        </object>
-      </object>
-      -->
-
     </object>
   </repeat>
-
 </object>
-<!--
-<object type="button" size="50%-48 -26 50%+48 70" name="menuCivIcon" tooltip_style="sessionToolTipBold">
-  <object name="menuCivIconOverlay" style="CivIconOverlay" type="button"/>
-</object>
--->
-

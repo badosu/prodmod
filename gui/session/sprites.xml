@@ -1,98 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <sprites>
-
   <!-- (specmod) -->
 
-  <sprite name="BackgroundDarken">
-    <image backcolor="0 0 0 200" size="0 0 100% 100%"/>
-  </sprite>
-
   <sprite name="BgBlueDark">
-    <image backcolor="0 0 0 200" size="0 0 100% 60%" />
-    <image backcolor="21 55 149 200" size="0 60% 100% 100%" />
+    <image backcolor="21 55 149 255" size="0 0 100% 100%" />
   </sprite>
 
   <sprite name="BgRedDark">
-    <image backcolor="0 0 0 200" size="0 0 100% 60%" />
-    <image backcolor="150 20 20 200" size="0 60% 100% 100%" />
+    <image backcolor="150 20 20 255" size="0 0 100% 100%" />
   </sprite>
 
   <sprite name="BgGreenDark">
-    <image backcolor="0 0 0 200" size="0 0 100% 60%" />
-    <image backcolor="86 180 31 200" size="0 60% 100% 100%" />
+    <image backcolor="86 180 31 255" size="0 0 100% 100%" />
   </sprite>
 
   <sprite name="BgYellowDark">
-    <image backcolor="0 0 0 200" size="0 0 100% 60%" />
-    <image backcolor="231 200 5 200" size="0 60% 100% 100%" />
+    <image backcolor="231 200 5 255" size="0 0 100% 100%" />
   </sprite>
 
   <sprite name="BgCyanDark">
-    <image backcolor="0 0 0 200" size="0 0 100% 60%" />
-    <image backcolor="50 170 170 200" size="0 60% 100% 100%" />
+    <image backcolor="50 170 170 255" size="0 0 100% 100%" />
   </sprite>
 
   <sprite name="BgPurpleDark">
-    <image backcolor="0 0 0 200" size="0 0 100% 60%" />
-    <image backcolor="160 80 200 200" size="0 60% 100% 100%" />
+    <image backcolor="160 80 200 255" size="0 0 100% 100%" />
   </sprite>
 
   <sprite name="BgOrangeDark">
-    <image backcolor="0 0 0 200" size="0 0 100% 60%" />
-    <image backcolor="220 115 16 200" size="0 60% 100% 100%" />
+    <image backcolor="220 115 16 255" size="0 0 100% 100%" />
   </sprite>
 
   <sprite name="BgGrayDark">
-    <image backcolor="0 0 0 200" size="0 0 100% 60%" />
-    <image backcolor="64 64 64 200" size="0 60% 100% 100%" />
+    <image backcolor="64 64 64 255" size="0 0 100% 100%" />
   </sprite>
-  <!--
-  <sprite name="BackgroundDarken">
-    <image backcolor="0 0 0 200" size="0 0 100% 100%"/>
-  </sprite>
-  -->
-  <sprite name="BgSmallBlueDark">
-    <image backcolor="0 0 0 200" size="0 0 100% 90%" />
-    <image backcolor="21 55 149 200" size="0 90% 100% 100%" />
-  </sprite>
-
-  <sprite name="BgSmallRedDark">
-    <image backcolor="0 0 0 200" size="0 0 100% 90%" />
-    <image backcolor="150 20 20 200" size="0 90% 100% 100%" />
-  </sprite>
-
-  <sprite name="BgSmallGreenDark">
-    <image backcolor="0 0 0 200" size="0 0 100% 90%" />
-    <image backcolor="86 180 31 200" size="0 90% 100% 100%" />
-  </sprite>
-
-  <sprite name="BgSmallYellowDark">
-    <image backcolor="0 0 0 200" size="0 0 100% 90%" />
-    <image backcolor="231 200 5 200" size="0 90% 100% 100%" />
-  </sprite>
-
-  <sprite name="BgSmallCyanDark">
-    <image backcolor="0 0 0 200" size="0 0 100% 90%" />
-    <image backcolor="50 170 170 200" size="0 90% 100% 100%" />
-  </sprite>
-
-  <sprite name="BgSmallPurpleDark">
-    <image backcolor="0 0 0 200" size="0 0 100% 90%" />
-    <image backcolor="160 80 200 200" size="0 90% 100% 100%" />
-  </sprite>
-
-  <sprite name="BgSmallOrangeDark">
-    <image backcolor="0 0 0 200" size="0 0 100% 90%" />
-    <image backcolor="220 115 16 200" size="0 90% 100% 100%" />
-  </sprite>
-
-  <sprite name="BgSmallGrayDark">
-    <image backcolor="0 0 0 200" size="0 0 100% 90%" />
-    <image backcolor="64 64 64 200" size="0 90% 100% 100%" />
-  </sprite>
-
-  <!-- (specmod) -->
 
   <sprite name="groupsIcon">
     <image texture="session/icons/groups.png" size="0 0 100% 100%" />

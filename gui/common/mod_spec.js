@@ -7,7 +7,7 @@ function nestCallback (fn1, fn2) {
 
 hasSameMods = (function (original) {
   return function (modsA, modsB) {
-    let mod = name => !name[0].startsWith('spec');
+    let mod = name => !name[0].startsWith('specmod');
     return original(modsA.filter(mod), modsB.filter(mod));
   }
 })(hasSameMods);

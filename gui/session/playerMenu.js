@@ -2,300 +2,204 @@ function PlayerMenu () {
   this.createMenu();
 }
 
+let matchColors = {
+  '21': 'Blue', '150': 'Red',    '86':  'Green',  '231': 'Yellow',
+  '50': 'Cyan', '160': 'Purple', '220': 'Orange', '64':  'Gray'
+};
+
+function ProductionItem(playerIndex, itemIndex, sprite) {
+  this.itemIndex = itemIndex;
+  this.icon = Engine.GetGUIObjectByName(`productionRow[${playerIndex}]Item[${itemIndex}]Icon`);
+  this.btn = Engine.GetGUIObjectByName(`productionRow[${playerIndex}]Item[${itemIndex}]Btn`);
+  this.cnt = Engine.GetGUIObjectByName(`productionRow[${playerIndex}]Item[${itemIndex}]Count`);
+  this.progress = Engine.GetGUIObjectByName(`productionRow[${playerIndex}]Item[${itemIndex}]Prg`);
+  this.progress.sprite = sprite;
+
+  const offset = 34;
+  const buttonLeft = 8 + (offset + 2) * this.itemIndex;
+  let size = this.btn.size;
+  size.left = buttonLeft;
+  size.right = buttonLeft + offset;
+  this.btn.size = size;
+
+  this.btn.onPress = this.onPress.bind(this);
+}
+
+ProductionItem.prototype.update = function(item) {
+  this.entityPosition = item.position;
+  this.icon.sprite = "stretched:session/portraits/" + item.template.icon;
+
+  let btnSize = this.btn.size;
+  if (typeof item.progress == "number") { // js is stupid, 0 evals as false
+    this.progress.hidden = false;
+    btnSize.bottom = 37
+
+    let progressSize = this.progress.size;
+    progressSize.right = 3 + 28 * item.progress;
+    this.progress.size = progressSize;
+  } else {
+    this.progress.hidden = true;
+    btnSize.bottom = 35
+  }
+  this.btn.size = btnSize;
+
+  let tooltip = getEntityNames(item.template);
+  if (item.timeRemaining)
+    tooltip += " - " + Math.ceil(item.timeRemaining) + "s"
+
+  this.btn.tooltip = tooltip;
+  this.btn.hidden = false;
+  this.cnt.caption = item.caption || "";
+}
+
+ProductionItem.prototype.onPress = function() {
+  if (!this.entityPosition)
+    return;
+
+  Engine.CameraMoveTo(this.entityPosition.x, this.entityPosition.z);
+}
+
+ProductionItem.prototype.hide = function() {
+  this.btn.hidden = true;
+  this.progress.hidden = true;
+}
+
+function ProductionRow(playerId, playerData, rowIndex = playerId - 1) {
+  let height = 44;
+  let menu = Engine.GetGUIObjectByName(`productionRow[${rowIndex}]`);
+  let ind = Engine.GetGUIObjectByName(`productionRow[${rowIndex}]Ind`);
+  let sizeTop = rowIndex * height + 8;
+  menu.size = `0 ${sizeTop} 50% ${sizeTop + height}`;
+  menu.hidden = false;
+  const colorSprite = `Bg${matchColors[(playerData.color.r * 255)+ '']}Dark`;
+  ind.sprite = colorSprite;
+
+  this.menu = menu;
+  this.items = [];
+  for (let i=0; i<20; i++)
+    this.items.push(new ProductionItem(playerId - 1, i, colorSprite));
+}
+
+ProductionRow.prototype.update = function(entities) {
+  for (let itemIndex=0; itemIndex < 20; itemIndex++) {
+    let item = this.items[itemIndex];
+
+    if (itemIndex < entities.length) {
+      item.update(entities[itemIndex]);
+    } else {
+      item.hide();
+    }
+  }
+}
+
 PlayerMenu.prototype = (function () {
-  let playerMenuItems =  ['wood', 'food', 'metal', 'stone', 'economics', 'military', 'population', 'player'];
-  let statesCache = {};
-  let allPlayerStats = [];
-  let economics = {};
-  let resHighlightTimeout = {};
-  let matchColors = {
-    '21': 'Blue', '150': 'Red',    '86':  'Green',  '231': 'Yellow',
-    '50': 'Cyan', '160': 'Purple', '220': 'Orange', '64':  'Gray'
-  };
-  let colorTable = {
-    '255 255 255 255': 'white', '255 165 0 255': 'orange'
-  };
-  let menuIcons = {
-    'wood':       'stretched:session/icons/resources/wood.png',
-    'food':       'stretched:session/icons/resources/food.png',
-    'metal':      'stretched:session/icons/resources/metal.png',
-    'stone':      'stretched:session/icons/resources/stone.png',
-    'population': 'stretched:session/icons/resources/population.png',
-    'economics':  'stretched:session/icons/economics.png',
-    'military':   'stretched:session/icons/stances/violent.png',
-    'village':    'stretched:session/portraits/technologies/village_phase.png',
-    'town':       'stretched:session/portraits/technologies/town_phase.png',
-    'city':       'stretched:session/portraits/technologies/city_phase.png',
-    'imperial':   'stretched:session/portraits/technologies/imperial_phase.png'
-  };
-  let defaultOffset = 9.6;
-//  let proportions = { population: 18 };
-  let civData = loadCivFiles(false);
-  translateObjectKeys(civData, ['Name']);
-  civData = deepfreeze(civData);
-
   let lastCheck = Date.now();
+  let players = [];
 
-  function getColor (color) {
-    return colorTable[color] || color;
-  };
+  const tickMillis = 500;
+  const productionFilter = (e) => e.state && players.indexOf(e.state.player) > -1 && (
+    (e.state.foundation && !e.state.mirage) ||
+    (e.state.production && e.state.production.queue.length > 0)
+  );
 
   return {
     constructor: PlayerMenu,
 
     tooEarly: function () {
-      return !(Date.now() - lastCheck > 1000 && (lastCheck = Date.now()));
-    },
+      const now = Date.now();
 
-    isCacheStale: function (key, ttl) {
-      if (!statesCache[key]) statesCache[key] = [];
-      if (!statesCache[key][0] || (Date.now() - statesCache[key][0]) > (ttl || 1000))
-        return true;
-
-      return false;
-    },
-
-    setCache: function (key, value) {
-      statesCache[key] = [Date.now(), value];
-      return value;
-    },
-
-    getCache: function (key) {
-      return statesCache[key][1];
-    },
-
-    getState: function (player) {
-      let result;
-
-      if (this.isCacheStale('simulation'))
-        result = this.setCache('simulation', Engine.GuiInterfaceCall('GetSimulationState')); // deepfreeze
-      else
-        result = this.getCache('simulation');
-
-      return player ? result[player] : result;
-    },
-
-    getEntities: function () {
-      if (this.isCacheStale('entities'))
-        return this.setCache('entities', GetMultipleEntityStates(Engine.GuiInterfaceCall("GetNonGaiaEntities"))); // deepfreeze
-
-      return this.getCache('entities');
-    },
-
-    calcEconomics: function (player, stats) {
-      stats = stats ? stats.resourcesGathered : this.getState(player).statistics.resourcesGathered;
-
-      if (!economics[player])
-        economics[player] = { averages: [], sumResources: [], lastTotal: 0, lastSurvey: Date.now() };
-
-      let economic = economics[player];
-
-      if (Date.now() - economic.lastSurvey < 990)
-        return economic.averages[0] || 0;
-
-      let total = Math.ceil(stats.wood + stats.food + stats.metal + stats.stone);
-      economic.sumResources.unshift(total - economic.lastTotal);
-      economic.lastTotal = total;
-      economic.lastSurvey = Date.now();
-
-      if (economic.sumResources.length > 10)
-        economic.sumResources.pop();
-
-      economic.averages.unshift(
-        Math.ceil(economic.sumResources.reduce((a, b) => a + b, 0) / economic.sumResources.length) * 6
-      );
-
-      if (economic.averages.length > 10)
-        economic.averages.pop();
-
-      return economic.averages[0];
+      return !(now - lastCheck > tickMillis && (lastCheck = now));
     },
 
     createMenu: function () {
-      var matchState = this.getState();
-      var showUnitsByRes = matchState.players.length < 6;
-      var statsHeight = showUnitsByRes ? 33 : 26;
-      let partialName;
-      let leftSide = true;
-      let playerData;
-      let itemIndex;
+      const matchState = Engine.GuiInterfaceCall('GetSimulationState');
+      const isObserver = isPlayerObserver(g_ViewedPlayer);
 
-      for (let player = 0; player < matchState.players.length - 1; ++player) {
-        let playerStats = { res: {} }
-        let blockOffset = 0;
-        itemIndex = 0;
-        playerData = matchState.players[player + 1];
+      players = isObserver ?
+        Array(matchState.players.length - 1).fill(0).map((x, y) => y + 1)
+        : [g_ViewedPlayer];
 
-        playerStats.menu = Engine.GetGUIObjectByName(`teamMenuPlayer[${player}]`);
-        playerStats.menu.sprite = `Bg${showUnitsByRes ? '' : 'Small'}${matchColors[(playerData.color.r * 255)+ '']}Dark`;
-        playerStats.menu.size = `${leftSide ? 0 : '100%'} ${player * statsHeight} ` +
-          `${leftSide ? '100%' : '80%'} ${(player * statsHeight) + statsHeight}`; // 40% -> 100%
+      this.playerMenus = {};
+      for (let playerId of players) {
+        const position = isObserver ? playerId - 1 : 0;
 
-        for (let item of playerMenuItems) {
-          let playerMenuItem = {
-            block:    Engine.GetGUIObjectByName((partialName = `teamMenuPlayer[${player}]Item[${itemIndex}]`)),
-            btn:      Engine.GetGUIObjectByName(`${partialName}Btn`),
-            title:    Engine.GetGUIObjectByName(`${partialName}Title`),
-            subtitle: Engine.GetGUIObjectByName(`${partialName}Subtitle`),
-            icon:     Engine.GetGUIObjectByName(`${partialName}Icon`)
-          };
+        this.playerMenus[playerId] = new ProductionRow(playerId, matchState.players[playerId], position);
+      }
 
-          playerMenuItem.icon.sprite = menuIcons[item] || '';
-          playerMenuItem.subtitle.caption = '0';
-          playerMenuItem.block.size = (item === 'population' || item === 'military') ? `${blockOffset}% 3 ${(blockOffset += 12)}% ${statsHeight}` :
-            `${blockOffset}% 3 ${(blockOffset += defaultOffset)}% ${statsHeight}`;
+      const productionContainer = Engine.GetGUIObjectByName('productionContainer');
 
-          if (playerData.resourceCounts[item] !== undefined) {
-            playerMenuItem.title.caption = 99999; // playerData.resourceCounts[item];
-          } else if (item === 'population' || item === 'military') {
-            playerMenuItem.title.size = '30 3 80 19';
-            playerMenuItem.subtitle.size = '30 18 80 32';
-            playerMenuItem.title.caption = item === 'population' ? `${playerData.popCount}/${playerData.popLimit}` : '0/0';
-          } else if (item === 'player') {
-            playerMenuItem.btn.size = '0 3 16 19';
-            playerMenuItem.title.size = '22 3 140 19';
-            playerMenuItem.title.caption = playerData.name.replace(/ \(\d+\)/, '').substring(0, 18);
-            playerMenuItem.icon.sprite = `stretched:${civData[playerData.civ].Emblem}`;
-            playerMenuItem.title.onPress = selectViewPlayer.bind(this, player + 1);
-          } else {
-            playerMenuItem.title.caption = 0;
-          }
+      if (players.length > 1) {
+        const size = productionContainer.size;
+        size.top = 420;
+        productionContainer.size = size;
+      }
 
-          if (!showUnitsByRes) {
-            playerMenuItem.subtitle.hidden = true;
-          }
+      productionContainer.hidden = false;
+    },
 
-          if (player > 0) {
-            if (item !== 'player')
-              playerMenuItem.icon.hidden = playerMenuItem.btn.hidden = true;
-          } else {
-            warn( playerMenuItem.btn.size+''  );
-          }
+    extractEntityData: function(entity) {
+      const state = entity.state;
+      const position = state.position;
+      let caption, template, timeRemaining;
+      let progress = 0;
 
-          playerStats[item] = playerMenuItem;
-          ++itemIndex;
+      if (state.foundation) {
+        const templateSections = state.template.split('|');
+        template = GetTemplateData(templateSections[templateSections.length - 1]);
+        timeRemaining = state.foundation.buildTime.timeRemaining;
+        if (timeRemaining == 0)
+          timeRemaining = false;
+        progress = state.hitpoints > 1 ? state.hitpoints / state.maxHitpoints : false;
+      } else if (state.production) {
+        const batch = state.production.queue[0];
+        timeRemaining = batch.timeRemaining / 1000.0;
+        progress = batch.progress;
+
+        if (batch.unitTemplate) {
+          template = GetTemplateData(batch.unitTemplate);
+          caption = batch.count;
+        } else if (batch.technologyTemplate) {
+          template = GetTechnologyData(batch.technologyTemplate, g_Players[state.player].civ);
+        } else {
+          pp(entity);
+          return;
         }
-
-        playerStats.menu.hidden = false;
-        allPlayerStats.push(playerStats);
+      } else {
+        pp(entity);
+        return;
       }
 
-      Engine.GetGUIObjectByName('teamMenu').hidden = false;
-    },
-
-    resourceHighlight: function (player, resource, color, timeoutFn) {
-      if (!resHighlightTimeout[player])
-        resHighlightTimeout[player] = { [resource]: { timeout: 0, default: '' } };
-      if (!resHighlightTimeout[player][resource])
-        resHighlightTimeout[player][resource] = { timeout: 0, default: '' };
-      if (!timeoutFn && resHighlightTimeout[player][resource].timeout)
-        return;
-
-      let textcolor = allPlayerStats[player][resource].title.textcolor;
-
-      resHighlightTimeout[player][resource].timeout =
-        setTimeout(this.resourceHighlight.bind(this, player, resource, getColor(textcolor), true), 500);
-
-      if (!color) {
-        color = 'orange';
-        resHighlightTimeout[player][resource].default = 'white';
-      }
-
-      allPlayerStats[player][resource].title.textcolor = getColor(color);
-    },
-
-    clearResourceHightlight: function (player, resource) {
-      if (!resHighlightTimeout[player] || !resHighlightTimeout[player][resource] || !resHighlightTimeout[player][resource].timeout)
-        return;
-
-      resHighlightTimeout[player][resource].timeout = !!clearTimeout(resHighlightTimeout[player][resource].timeout);
-      allPlayerStats[player][resource].title.textcolor = resHighlightTimeout[player][resource].default;
+      return { "template": template, "caption": caption, "timeRemaining": timeRemaining, "progress": progress, "position": position };
     },
 
     update: function () {
       if (Engine.IsPaused() || this.tooEarly())
         return;
 
-      const unitsByRes = allPlayerStats.length < 5 ? this.unitsByResource() : [];
-      const matchState = Engine.GuiInterfaceCall('GetExtendedSimulationState');
-      let sequencesLastIndex = matchState.players[1].sequences.unitsLost.total.length - 1;
-
-      for (let index = 0; index < allPlayerStats.length; ++index) {
-        let playerStats = allPlayerStats[index];
-        let singlePlayerData = matchState.players[index + 1];
-        let killed = singlePlayerData.sequences.enemyUnitsKilled.total[sequencesLastIndex];
-        let dead = singlePlayerData.sequences.unitsLost.total[sequencesLastIndex];
-
-        playerStats.player.icon.sprite = menuIcons[singlePlayerData.phase];
-
-        for (let item of playerMenuItems) {
-          playerStats[item].subtitle.caption = unitsByRes[index + 1] ? unitsByRes[index + 1][item] || '0' : '0';
-
-          if (singlePlayerData.resourceCounts[item] !== undefined) {
-            playerStats[item].title.caption = Math.ceil(singlePlayerData.resourceCounts[item] || 0);
-          } else if (item === 'population') {
-            if (singlePlayerData.trainingBlocked)
-              this.resourceHighlight(index, item);
-            else
-              this.clearResourceHightlight(index, item);
-
-            playerStats.population.title.caption = `${singlePlayerData.popCount}/${singlePlayerData.popLimit}`;
-          } else {
-            playerStats[item].title.caption = item === 'economics' ? this.calcEconomics(index + 1, singlePlayerData.statistics) :
-              (item === 'military' ? `${killed}/${dead}` : playerStats[item].title.caption);
-          }
-        }
+      if (players.length == 1 && isPlayerObserver(players[0])) {
+        this.createMenu();
       }
-    },
 
-    unitsByResource: function () {
-      let entState;
-      let entPlayer;
-      let entOrder;
-      let unitsByRes = {};
-      let otherActions = {};
-      let entStates = this.getEntities()
-        .filter((ent) => ent.state && ent.state.identity && ent.state.identity.classes.indexOf('Human') > -1);
+      let queues = {};
+      for (let playerId of players) {
+        queues[playerId] = [];
+      }
 
-      for (let i = 0; i < entStates.length; i++) {
-        entState = entStates[i].state;
-        entPlayer = entState.player;
+      let entities = GetMultipleEntityStates(Engine.GuiInterfaceCall("GetNonGaiaEntities"));
 
-        if (!unitsByRes[entPlayer]) {
-          unitsByRes[entPlayer] = { wood: 0, food: 0, stone: 0, metal: 0 };
-          otherActions[entPlayer] = { };
-        }
-
-        if (!entState.unitAI.orders || !entState.unitAI.orders[0] || !entState.unitAI.orders[0].type)
+      for (let entity of entities) {
+        if (!productionFilter(entity))
           continue;
 
-        entOrder = entState.unitAI.orders[0];
-
-        if (entOrder.type === 'Gather') {
-          if (menuIcons[entOrder.data.type.generic])
-            unitsByRes[entPlayer][entOrder.data.type.generic] += 1;
-        } else {
-          otherActions[entPlayer][entOrder.type] = (otherActions[entPlayer][entOrder.type] || 0) + 1;
+        const entityData = this.extractEntityData(entity);
+        if (entityData) {
+          queues[entity.state.player].push(entityData);
         }
       }
 
-      return unitsByRes;
-    },
-
-    toggleQueue: function () {
-      //warn(' toggle queue ');
-    },
-
-    toggleEconomics: function () {
-      //warn(' toggle economics ');
-    },
-
-    toggleMilitary: function () {
-      //warn(' toggle military ');
-    },
-
-    toggleGatherers: function () {
-      //warn(' toggle gatherers ');
+      for (let playerId of players) {
+        this.playerMenus[playerId].update(queues[playerId]);
+      }
     }
   };
 })();

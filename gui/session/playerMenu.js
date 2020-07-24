@@ -2,19 +2,18 @@ function PlayerMenu () {
   this.createMenu();
 }
 
-function ProductionItem(playerIndex, itemIndex, sprite) {
+function ProductionItem(playerIndex, itemIndex, color) {
   this.itemIndex = itemIndex;
   this.icon = Engine.GetGUIObjectByName(`productionRow[${playerIndex}]Item[${itemIndex}]Icon`);
   this.btn = Engine.GetGUIObjectByName(`productionRow[${playerIndex}]Item[${itemIndex}]Btn`);
   this.cnt = Engine.GetGUIObjectByName(`productionRow[${playerIndex}]Item[${itemIndex}]Count`);
   this.progress = Engine.GetGUIObjectByName(`productionRow[${playerIndex}]Item[${itemIndex}]Prg`);
-  this.progress.sprite = sprite;
+  this.progress.sprite = brightenedSprite(color, this.ProgressBarBrighteningFactor);
 
-  const offset = 34;
-  const buttonLeft = 8 + (offset + 2) * this.itemIndex;
+  const buttonLeft = this.LeftMargin + (this.ButtonWidth + this.HorizontalGap) * this.itemIndex;
   let size = this.btn.size;
   size.left = buttonLeft;
-  size.right = buttonLeft + offset;
+  size.right = buttonLeft + this.ButtonWidth;
   this.btn.size = size;
 
   this.btn.onPress = this.onPress.bind(this);
@@ -22,17 +21,17 @@ function ProductionItem(playerIndex, itemIndex, sprite) {
 
 ProductionItem.prototype.update = function(item) {
   this.item = item;
-  this.icon.sprite = "stretched:session/portraits/" + item.template.icon;
+  this.icon.sprite = this.PortraitDirectory + item.template.icon;
 
   let btnSize = this.btn.size;
   let progressSize = this.progress.size;
   if (item.progress && (!item.foundation || item.hitpoints > 1)) {
     this.progress.hidden = false;
-    btnSize.bottom = 37
-    progressSize.right = 3 + 28 * item.progress;
+    btnSize.bottom = this.ButtonWidth + this.ProgressBarHeight;
+    progressSize.right = this.BorderWidth + (this.ButtonWidth - 2 * this.BorderWidth) * item.progress;
   } else {
     this.progress.hidden = true;
-    btnSize.bottom = 35
+    btnSize.bottom = this.ButtonWidth;
   }
   this.progress.size = progressSize;
   this.btn.size = btnSize;
@@ -64,55 +63,32 @@ ProductionItem.prototype.hide = function() {
   this.progress.hidden = true;
 }
 
-function brightenRgb(color, amount) {
-  const threshold = 255.999;
+ProductionItem.prototype.LeftMargin = 10;
+ProductionItem.prototype.HorizontalGap = 2;
+ProductionItem.prototype.ButtonWidth = 34;
+ProductionItem.prototype.BorderWidth = 3;
+ProductionItem.prototype.ProgressBarHeight = 3;
+ProductionItem.prototype.PortraitDirectory = "stretched:session/portraits/";
+ProductionItem.prototype.ProgressBarBrighteningFactor = 100;
 
-  let r = color.r * 255;
-  let g = color.g * 255;
-  let b = color.b * 255;
-
-  if (Math.max(r, g, b) < 150) { // low enough to increase
-    r += amount;
-    g += amount;
-    b += amount;
-    const m = Math.max(r, g, b);
-
-    if (m > threshold) {
-      const total = r + g + b;
-      if (total >= 3 * threshold) {
-        r = g = b = threshold;
-      } else {
-        const x = (3 * threshold - total) / (3 * m - total);
-        const gray = threshold - x * m;
-        r = gray + x * r;
-        g = gray + x * g;
-        b = gray + x * b;
-      }
-    }
-  }
-
-  return `color: ${Math.floor(r)} ${Math.floor(g)} ${Math.floor(b)} 255`;
-}
-
-function ProductionRow(playerId, playerData, rowIndex = playerId - 1) {
-  let height = 44;
+function ProductionRow(playerId, color, rowIndex = playerId - 1) {
   let menu = Engine.GetGUIObjectByName(`productionRow[${rowIndex}]`);
   let ind = Engine.GetGUIObjectByName(`productionRow[${rowIndex}]Ind`);
-  let sizeTop = rowIndex * height + 8;
-  menu.size = `0 ${sizeTop} 50% ${sizeTop + height}`;
+  let sizeTop = rowIndex * this.Height + this.VerticalGap;
+  menu.size = `0 ${sizeTop} ${this.MaxWidth} ${sizeTop + this.Height}`;
   menu.hidden = false;
-  const colorSprite = `color: ${playerData.color.r * 255} ${playerData.color.g * 255} ${playerData.color.b * 255} 255`;
+  const colorSprite = `color: ${color.r * 255} ${color.g * 255} ${color.b * 255} 255`;
   ind.sprite = colorSprite;
 
   this.menu = menu;
   this.items = [];
-  const brightenedRgb = brightenRgb(playerData.color, 100);
-  for (let i=0; i<20; i++)
-    this.items.push(new ProductionItem(playerId - 1, i, brightenedRgb));
+
+  for (let i = 0; i < this.ItemCount; i++)
+    this.items.push(new ProductionItem(playerId - 1, i, color));
 }
 
 ProductionRow.prototype.update = function(entities) {
-  for (let itemIndex=0; itemIndex < 20; itemIndex++) {
+  for (let itemIndex = 0; itemIndex < this.ItemCount; itemIndex++) {
     let item = this.items[itemIndex];
 
     if (itemIndex < entities.length) {
@@ -122,6 +98,11 @@ ProductionRow.prototype.update = function(entities) {
     }
   }
 }
+
+ProductionRow.prototype.ItemCount = 20;
+ProductionRow.prototype.Height = ProductionItem.prototype.ButtonWidth + ProductionItem.prototype.ProgressBarHeight + 9;
+ProductionRow.prototype.VerticalGap = 8;
+ProductionRow.prototype.MaxWidth = "50%";
 
 PlayerMenu.prototype = (function () {
   let lastCheck = Date.now();
@@ -150,7 +131,7 @@ PlayerMenu.prototype = (function () {
       for (let playerId of players) {
         const position = isObserver ? playerId - 1 : 0;
 
-        this.playerMenus[playerId] = new ProductionRow(playerId, matchState.players[playerId], position);
+        this.playerMenus[playerId] = new ProductionRow(playerId, matchState.players[playerId].color, position);
       }
 
       const productionContainer = Engine.GetGUIObjectByName('productionContainer');
@@ -178,11 +159,13 @@ PlayerMenu.prototype = (function () {
         queues[playerId] = [];
       }
 
-      const entities = Engine.GuiInterfaceCall("prodmod_GetPlayersProduction");
+      const entities = Engine.GuiInterfaceCall("prodmod_GetPlayersProduction", players.length == 1 ? players[0] : null);
 
       //pp("ents: " + ((Engine.GetMicroseconds() - first) / 1000).toFixed(6) + "ms.\n");
 
+      //pp(entities);
       for (let entity of entities) {
+        //pp(players);
         queues[entity.state.player].push(entity.state);
       }
 

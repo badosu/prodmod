@@ -36,7 +36,7 @@ function autociv_patchApplyN()
     prefix[method] = new Proxy(prefix[method], { apply: patch });
 }
 
-GuiInterface.prototype.prodmod_GetPlayersProduction = function(player)
+GuiInterface.prototype.prodmod_GetPlayersProduction = function(_currentPlayer, player)
 {
   const cmpRangeManager = Engine.QueryInterface(SYSTEM_ENTITY, IID_RangeManager);
 	const entities = (player && player > 0) ? cmpRangeManager.GetEntitiesByPlayer(player) : cmpRangeManager.GetNonGaiaEntities();

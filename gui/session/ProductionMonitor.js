@@ -46,7 +46,7 @@ ProductionMonitor.prototype.update = function () {
   }
 
   const entities = Engine.GuiInterfaceCall("prodmod_GetPlayersProduction",
-    this.singlePlayer() ? this.players[0] : null
+    this.singlePlayer() ? this.players[0] : -1
   );
 
   //pp("ents: " + ((Engine.GetMicroseconds() - first) / 1000).toFixed(6) + "ms.\n");

@@ -1,10 +1,3 @@
-function nestCallback (fn1, fn2) {
-  return function (...args) {
-    fn1(...args);
-    return fn2(...args);
-  };
-}
-
 autociv_patchApplyN("hasSameMods", function (target, that, args)
 {
 	let mod = ([name, _version]) => !/^specmod*/i.test(name);

@@ -5,7 +5,7 @@ function specmod_patchModFilter()
 
   autociv_patchApplyN("getFilteredMods", function (target, that, args)
   {
-  	let mod = ([name, version]) => !/^specmod.*/i.test(name);
+  	let mod = ([name, _version]) => !/^specmod.*/i.test(name);
   	return target.apply(that, args).filter(mod);
   });
 

@@ -71,9 +71,7 @@ function brightenRgb(color, amount) {
   let g = color.g * 255;
   let b = color.b * 255;
 
-  const total = r + g + b;
-
-  if (total < 400) { // low enough to increase
+  if (Math.max(r, g, b) < 150) { // low enough to increase
     r += amount;
     g += amount;
     b += amount;
@@ -108,7 +106,7 @@ function ProductionRow(playerId, playerData, rowIndex = playerId - 1) {
 
   this.menu = menu;
   this.items = [];
-  const brightenedRgb = brightenRgb(playerData.color, 70);
+  const brightenedRgb = brightenRgb(playerData.color, 100);
   for (let i=0; i<20; i++)
     this.items.push(new ProductionItem(playerId - 1, i, brightenedRgb));
 }

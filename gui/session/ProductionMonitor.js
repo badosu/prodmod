@@ -111,24 +111,20 @@ ProductionMonitor.prototype.Modes = {
   },
   0: {
     'retrieve': function(playerId) {
-      const entityStates = Engine.GuiInterfaceCall("prodmod_GetPlayersUnits", playerId).map(e => e.state);
-      let counts = new Map();
+      const entityStates = Engine.GuiInterfaceCall("prodmod_GetPlayersUnits", playerId);
+      let counts = Object.create(null);
 
-      for (let entityState of entityStates) {
-        // TODO: Pls halp
-        const serialized = JSON.stringify(entityState);
-        counts.set(serialized, (counts.get(serialized) || 0) + 1);
+      for (let e of entityStates) {
+        const ss = JSON.stringify(e.state);
+        counts[ss] = (counts[ss] || 0) + 1;
       }
 
-      let result = [];
-      counts.forEach((count, s) => {
-        s = JSON.parse(s);
-        s.count = count;
+      return Object.keys(counts).map(ss => {
+        const e = JSON.parse(ss);
+        e.count = counts[ss].toString();
 
-        result.push(s);
+        return e;
       });
-
-      return result;
     },
     'label': 'Units',
     'tooltip': 'Switch to Production view'

@@ -4,6 +4,9 @@ function ProductionMonitor(viewedPlayer) {
   this.titleContainer = Engine.GetGUIObjectByName('productionMonitorTitleContainer');
   this.lastCheck = Date.now();
   this.viewedPlayer = viewedPlayer;
+  this.mode = 0;
+
+  this.titleContainer.onPress = this.onModeToggle.bind(this);
 
   this.reset(Engine.GuiInterfaceCall('GetSimulationState').players);
 }
@@ -26,8 +29,16 @@ ProductionMonitor.prototype.reset = function(playerStates) {
   this.show();
 }
 
-ProductionMonitor.prototype.update = function () {
-  if (Engine.IsPaused() || this.tooEarly())
+ProductionMonitor.prototype.onModeToggle = function() {
+  this.mode++;
+  this.mode %= Object.keys(this.Modes).length;
+
+  this.show();
+  this.update(true);
+}
+
+ProductionMonitor.prototype.update = function(forceRender = false) {
+  if (Engine.IsPaused() || (!forceRender && this.tooEarly()))
     return;
 
   const playerStates = Engine.GuiInterfaceCall('GetSimulationState').players;
@@ -45,14 +56,14 @@ ProductionMonitor.prototype.update = function () {
     queues[playerId] = [];
   }
 
-  const entities = Engine.GuiInterfaceCall("prodmod_GetPlayersProduction",
-    this.singlePlayer() ? this.players[0] : -1
-  );
+  //pp("reset: " + ((Engine.GetMicroseconds() - first) / 1000).toFixed(6) + "ms.\n");
 
-  //pp("ents: " + ((Engine.GetMicroseconds() - first) / 1000).toFixed(6) + "ms.\n");
+  let entityStates = this.Modes[this.mode].retrieve(this.singlePlayer() ? this.players[0] : -1);
 
-  for (let entity of entities) {
-    queues[entity.state.player].push(entity.state);
+  //pp(this.Modes[this.mode].label + " retrieved: " + ((Engine.GetMicroseconds() - first) / 1000).toFixed(6) + "ms.\n");
+
+  for (let entityState of entityStates) {
+    queues[entityState.player].push(entityState);
   }
 
   for (let playerId of this.players) {
@@ -68,13 +79,14 @@ ProductionMonitor.prototype.show = function() {
 
   size.top = this.singlePlayer() ? this.TopSingle : this.Top;
 
-  if (!this.singlePlayer()) {
-    this.title.caption = this.Title;
-    this.titleContainer.hidden = false;
-  }
-
   this.container.size = size;
   this.container.hidden = false;
+
+  if (!this.singlePlayer()) {
+    this.title.caption = this.Modes[this.mode].label;
+    this.titleContainer.tooltip = this.Modes[this.mode].tooltip;
+    this.titleContainer.hidden = false;
+  }
 }
 
 ProductionMonitor.prototype.singlePlayer = function() {
@@ -87,11 +99,41 @@ ProductionMonitor.prototype.tooEarly = function() {
   return !(now - this.lastCheck > this.TickMillis && (this.lastCheck = now));
 }
 
-ProductionMonitor.prototype.Title = "Production";
 ProductionMonitor.prototype.TitleHeight = 20;
 ProductionMonitor.prototype.TickMillis = 500;
 ProductionMonitor.prototype.Top = 420;
 ProductionMonitor.prototype.TopSingle = 84;
+ProductionMonitor.prototype.Modes = {
+  1: {
+    'retrieve': (playerId) => Engine.GuiInterfaceCall("prodmod_GetPlayersProduction", playerId).map(e => e.state),
+    'label': 'Production',
+    'tooltip': 'Switch to Units view'
+  },
+  0: {
+    'retrieve': function(playerId) {
+      const entityStates = Engine.GuiInterfaceCall("prodmod_GetPlayersUnits", playerId).map(e => e.state);
+      let counts = new Map();
+
+      for (let entityState of entityStates) {
+        // TODO: Pls halp
+        const serialized = JSON.stringify(entityState);
+        counts.set(serialized, (counts.get(serialized) || 0) + 1);
+      }
+
+      let result = [];
+      counts.forEach((count, s) => {
+        s = JSON.parse(s);
+        s.count = count;
+
+        result.push(s);
+      });
+
+      return result;
+    },
+    'label': 'Units',
+    'tooltip': 'Switch to Production view'
+  }
+}
 
 function ProductionItem(rowIndex, itemIndex, color) {
   this.itemIndex = itemIndex;
@@ -135,7 +177,9 @@ ProductionItem.prototype.update = function(item) {
   this.btn.tooltip = tooltip;
   this.btn.hidden = false;
 
-  if (item.production && item.production.kind == "unit") {
+  if (item.count) {
+    this.cnt.caption = item.count;
+  } else if (item.production && item.production.kind == "unit") {
     this.cnt.caption = item.production.count;
   } else {
     this.cnt.caption = "";
@@ -162,18 +206,17 @@ ProductionItem.prototype.ProgressBarHeight = 3;
 ProductionItem.prototype.PortraitDirectory = "stretched:session/portraits/";
 
 function ProductionRow(rowIndex, displayLabel, color = { r: 255, g: 255, b: 255 }) {
-  let menu = Engine.GetGUIObjectByName(`productionRow[${rowIndex}]`);
+  let row = Engine.GetGUIObjectByName(`productionRow[${rowIndex}]`);
   let ind = Engine.GetGUIObjectByName(`productionRow[${rowIndex}]Ind`);
   let sizeTop = rowIndex * this.Height + this.VerticalGap;
   if (displayLabel)
     sizeTop += ProductionMonitor.prototype.TitleHeight;
 
-  menu.size = `0 ${sizeTop} ${this.MaxWidth} ${sizeTop + this.Height}`;
-  menu.hidden = false;
+  row.size = `0 ${sizeTop} ${this.MaxWidth} ${sizeTop + this.Height}`;
+  row.hidden = false;
   const colorSprite = `color: ${color.r * 255} ${color.g * 255} ${color.b * 255} 255`;
   ind.sprite = colorSprite;
 
-  this.menu = menu;
   this.items = [];
 
   for (let i = 0; i < this.ItemCount; i++)

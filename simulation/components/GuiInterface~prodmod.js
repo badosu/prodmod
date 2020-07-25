@@ -38,19 +38,54 @@ function autociv_patchApplyN()
 
 GuiInterface.prototype.prodmod_GetPlayersProduction = function(_currentPlayer, player)
 {
+  return this.prodmod_RetrieveAndFilterPlayerEntities(player, this.prodmod_GetProductionState);
+}
+
+GuiInterface.prototype.prodmod_GetPlayersUnits = function(_currentPlayer, player)
+{
+  return this.prodmod_RetrieveAndFilterPlayerEntities(player, this.prodmod_GetUnitsState);
+}
+
+GuiInterface.prototype.prodmod_RetrieveAndFilterPlayerEntities = function(player, stateFilter)
+{
   const cmpRangeManager = Engine.QueryInterface(SYSTEM_ENTITY, IID_RangeManager);
 	const entities = (player && player > 0) ? cmpRangeManager.GetEntitiesByPlayer(player) : cmpRangeManager.GetNonGaiaEntities();
 
-  let productionEntities = [];
+  let result = [];
   for (let entity of entities) {
-    const state = this.prodmod_GetProductionState(entity);
+    const state = stateFilter(entity);
+
     if (!state)
       continue;
 
-    productionEntities.push({ "entId": entity, "state": state });
+    result.push({ "entId": entity, "state": state });
   }
 
-  return productionEntities;
+  return result;
+}
+
+GuiInterface.prototype.prodmod_GetUnitsState = function(ent)
+{
+  let ret = {};
+
+	let cmpTemplateManager = Engine.QueryInterface(SYSTEM_ENTITY, IID_TemplateManager);
+	let template = cmpTemplateManager.GetTemplate(cmpTemplateManager.GetCurrentTemplateName(ent));
+	if (!(template && template.Identity && template.Identity.Classes && template.Identity.Classes["_string"].indexOf("Unit") > -1))
+		return null;
+
+  ret.template = {
+    "name": template.Identity.GenericName,
+    "icon": template.Identity.Icon,
+  };
+
+	let cmpOwnership = Engine.QueryInterface(ent, IID_Ownership);
+	if (cmpOwnership) {
+		ret.player = cmpOwnership.GetOwner();
+  } else {
+    return null;
+  }
+
+  return ret;
 }
 
 GuiInterface.prototype.prodmod_GetProductionState = function(ent)
@@ -130,8 +165,6 @@ GuiInterface.prototype.prodmod_GetProductionState = function(ent)
     }
   }
 
-	ret.id = ent;
-
 	let cmpPosition = Engine.QueryInterface(ent, IID_Position);
 	if (cmpPosition && cmpPosition.IsInWorld())
 		ret.position = cmpPosition.GetPosition();
@@ -143,6 +176,7 @@ GuiInterface.prototype.prodmod_GetProductionState = function(ent)
 // must patch the original function
 let prodmod_exposedFunctions = {
     "prodmod_GetPlayersProduction": 1,
+    "prodmod_GetPlayersUnits": 1,
 };
 
 autociv_patchApplyN(GuiInterface.prototype, "ScriptCall", function (target, that, args)

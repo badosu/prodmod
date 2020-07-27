@@ -1,17 +1,21 @@
-function ProductionMonitor(viewedPlayer) {
+function ProductionMonitor(viewedPlayer, active = true, mode = 0) {
   this.container = Engine.GetGUIObjectByName('productionMonitor');
   this.title = Engine.GetGUIObjectByName('productionMonitorTitle');
   this.titleContainer = Engine.GetGUIObjectByName('productionMonitorTitleContainer');
+  this.templateCache = {};
   this.lastCheck = Date.now();
   this.viewedPlayer = viewedPlayer;
-  this.mode = 0;
+  this.mode = mode;
+  this.active = active;
 
   this.titleContainer.onPress = this.onModeToggle.bind(this);
 
-  this.reset(Engine.GuiInterfaceCall('GetSimulationState').players);
+  this.reset();
 }
 
-ProductionMonitor.prototype.reset = function(playerStates) {
+ProductionMonitor.prototype.reset = function(simulationState = Engine.GuiInterfaceCall('GetSimulationState')) {
+  this.simulationState = simulationState;
+  const playerStates = simulationState.players;
   const isObserver = !playerStates[this.viewedPlayer] || playerStates[this.viewedPlayer].state != "active";
 
   this.players = isObserver ?
@@ -26,7 +30,8 @@ ProductionMonitor.prototype.reset = function(playerStates) {
     this.rows[playerId] = new ProductionRow(rowIndex, isObserver, playerColor);
   }
 
-  this.show();
+  if (this.active)
+    this.show();
 }
 
 ProductionMonitor.prototype.onModeToggle = function() {
@@ -37,44 +42,53 @@ ProductionMonitor.prototype.onModeToggle = function() {
   this.update(true);
 }
 
+ProductionMonitor.prototype.getTemplateData = function(templateName) {
+  if (!this.templateCache[templateName])
+    this.templateCache[templateName] = GetTemplateData(templateName);
+
+  return this.templateCache[templateName];
+}
+
 ProductionMonitor.prototype.update = function(forceRender = false) {
-  if (Engine.IsPaused() || (!forceRender && this.tooEarly()))
+  if (!this.active || (Engine.IsPaused() || (!forceRender && this.tooEarly())))
     return;
 
-  const playerStates = Engine.GuiInterfaceCall('GetSimulationState').players;
+  this.simulationState = Engine.GuiInterfaceCall('GetSimulationState')
+  const playerStates = this.simulationState.players;
   const isObserver = !playerStates[this.viewedPlayer] || playerStates[this.viewedPlayer].state != "active";
-
-  //const first = Engine.GetMicroseconds();
 
   // Switch to overview when user was a player and is defeated or wins
   // TODO: Use a24 registerPlayersFinishedHandler
   if (this.singlePlayer() && isObserver)
-    this.reset(playerStates);
+    this.reset(this.simulationState);
 
-  let queues = {};
-  for (let playerId of this.players) {
-    queues[playerId] = [];
-  }
+  const queues = this.Modes[this.mode].getQueues.bind(this)();
 
-  //pp("reset: " + ((Engine.GetMicroseconds() - first) / 1000).toFixed(6) + "ms.\n");
+  this.updateRows(queues);
+}
 
-  let entityStates = this.Modes[this.mode].retrieve(this.singlePlayer() ? this.players[0] : -1);
-
-  //pp(this.Modes[this.mode].label + " retrieved: " + ((Engine.GetMicroseconds() - first) / 1000).toFixed(6) + "ms.\n");
-
-  for (let entityState of entityStates) {
-    queues[entityState.player].push(entityState);
-  }
-
+ProductionMonitor.prototype.updateRows = function(queues) {
   for (let playerId of this.players) {
     this.rows[playerId].update(queues[playerId]);
   }
+}
 
-  //pp("gui: " + ((Engine.GetMicroseconds() - first) / 1000).toFixed(6) + "ms.\n");
-  //pp("!!!");
+ProductionMonitor.prototype.hide = function() {
+  this.active = false;
+  this.container.hidden = true;
+}
+
+ProductionMonitor.prototype.toggleVisibility = function() {
+  if (this.active) {
+    this.hide();
+  } else {
+    this.show();
+  }
 }
 
 ProductionMonitor.prototype.show = function() {
+  this.active = true;
+
   const size = this.container.size;
 
   size.top = this.singlePlayer() ? this.TopSingle : this.Top;
@@ -104,27 +118,68 @@ ProductionMonitor.prototype.TickMillis = 500;
 ProductionMonitor.prototype.Top = 420;
 ProductionMonitor.prototype.TopSingle = 84;
 ProductionMonitor.prototype.Modes = {
+  //2: {
+  //  'getQueues': function() {
+  //    let queues = {};
+  //    for (let playerId of this.players) {
+  //      queues[playerId] = [];
+  //      pp(Engine.GuiInterfaceCall("prodmod_GetResearchedTechs", playerId));
+  //    }
+  //    //playerIdconst playerQuery = this.singlePlayer() ? this.players[0] : -1;
+  //    //playerIdconst entityStates = Engine.GuiInterfaceCall("prodmod_GetPlayersProduction", playerQuery);
+  //    //playerIdfor (let entityState of entityStates.map(e => e.state)) {
+  //    //playerId  queues[entityState.player].push(entityState);
+  //    //playerId}
+
+  //    return queues;
+  //  },
+  //  'label': 'Tech',
+  //  'tooltip': 'Switch to Units view'
+  //},
   1: {
-    'retrieve': (playerId) => Engine.GuiInterfaceCall("prodmod_GetPlayersProduction", playerId).map(e => e.state),
+    'getQueues': function() {
+      let queues = {};
+      for (let playerId of this.players) {
+        queues[playerId] = [];
+      }
+
+      const playerQuery = this.singlePlayer() ? this.players[0] : -1;
+      const entityStates = Engine.GuiInterfaceCall("prodmod_GetPlayersProduction", playerQuery);
+      for (let entityState of entityStates.map(e => e.state)) {
+        queues[entityState.player].push(entityState);
+      }
+
+      return queues;
+    },
     'label': 'Production',
     'tooltip': 'Switch to Units view'
   },
   0: {
-    'retrieve': function(playerId) {
-      const entityStates = Engine.GuiInterfaceCall("prodmod_GetPlayersUnits", playerId);
-      let counts = Object.create(null);
+    'getQueues': function() {
+      const playerStates = this.simulationState.players;
 
-      for (let e of entityStates) {
-        const ss = JSON.stringify(e.state);
-        counts[ss] = (counts[ss] || 0) + 1;
+      let queues = {};
+
+      for (let playerId of this.players) {
+        const unitCounts = playerStates[playerId]["typeCountsByClass"]["Unit"];
+
+        let queue = [];
+        for (let kind in unitCounts) {
+          const template = this.getTemplateData(kind);
+
+          queue.push({
+            "count": unitCounts[kind],
+            "template": {
+              "name": template.name.generic,
+              "icon": template.icon
+            }
+          })
+        }
+
+        queues[playerId] = queue;
       }
 
-      return Object.keys(counts).map(ss => {
-        const e = JSON.parse(ss);
-        e.count = counts[ss].toString();
-
-        return e;
-      });
+      return queues;
     },
     'label': 'Units',
     'tooltip': 'Switch to Production view'

@@ -36,14 +36,21 @@ function autociv_patchApplyN()
     prefix[method] = new Proxy(prefix[method], { apply: patch });
 }
 
+GuiInterface.prototype.prodmod_GetResearchedTechs = function(_currentPlayer, playerId)
+{
+	let cmpTechnologyManager = QueryPlayerIDInterface(playerId, IID_TechnologyManager);
+  if (!cmpTechnologyManager)
+    return null;
+
+  return {
+    "player": playerId,
+    "researchedTechs": cmpTechnologyManager.GetResearchedTechs()
+  };
+}
+
 GuiInterface.prototype.prodmod_GetPlayersProduction = function(_currentPlayer, player)
 {
   return this.prodmod_RetrieveAndFilterPlayerEntities(player, this.prodmod_GetProductionState);
-}
-
-GuiInterface.prototype.prodmod_GetPlayersUnits = function(_currentPlayer, player)
-{
-  return this.prodmod_RetrieveAndFilterPlayerEntities(player, this.prodmod_GetUnitsState);
 }
 
 GuiInterface.prototype.prodmod_RetrieveAndFilterPlayerEntities = function(player, stateFilter)
@@ -62,30 +69,6 @@ GuiInterface.prototype.prodmod_RetrieveAndFilterPlayerEntities = function(player
   }
 
   return result;
-}
-
-GuiInterface.prototype.prodmod_GetUnitsState = function(ent)
-{
-  let ret = {};
-
-	let cmpTemplateManager = Engine.QueryInterface(SYSTEM_ENTITY, IID_TemplateManager);
-	let template = cmpTemplateManager.GetTemplate(cmpTemplateManager.GetCurrentTemplateName(ent));
-	if (!(template && template.Identity && template.Identity.Classes && template.Identity.Classes["_string"].indexOf("Unit") > -1))
-		return null;
-
-  ret.template = {
-    "name": template.Identity.GenericName,
-    "icon": template.Identity.Icon,
-  };
-
-	let cmpOwnership = Engine.QueryInterface(ent, IID_Ownership);
-	if (cmpOwnership) {
-		ret.player = cmpOwnership.GetOwner();
-  } else {
-    return null;
-  }
-
-  return ret;
 }
 
 GuiInterface.prototype.prodmod_GetProductionState = function(ent)
@@ -176,7 +159,7 @@ GuiInterface.prototype.prodmod_GetProductionState = function(ent)
 // must patch the original function
 let prodmod_exposedFunctions = {
     "prodmod_GetPlayersProduction": 1,
-    "prodmod_GetPlayersUnits": 1,
+    "prodmod_GetResearchedTechs": 1,
 };
 
 autociv_patchApplyN(GuiInterface.prototype, "ScriptCall", function (target, that, args)
@@ -187,3 +170,27 @@ autociv_patchApplyN(GuiInterface.prototype, "ScriptCall", function (target, that
 })
 
 Engine.ReRegisterComponentType(IID_GuiInterface, "GuiInterface", GuiInterface);
+
+//GuiInterface.prototype.prodmod_GetUnitsState = function(ent)
+//{
+//  let ret = {};
+//
+//	let cmpTemplateManager = Engine.QueryInterface(SYSTEM_ENTITY, IID_TemplateManager);
+//	let template = cmpTemplateManager.GetTemplate(cmpTemplateManager.GetCurrentTemplateName(ent));
+//	if (!(template && template.Identity && template.Identity.Classes && template.Identity.Classes["_string"].indexOf("Unit") > -1))
+//		return null;
+//
+//  ret.template = {
+//    "name": template.Identity.GenericName,
+//    "icon": template.Identity.Icon,
+//  };
+//
+//	let cmpOwnership = Engine.QueryInterface(ent, IID_Ownership);
+//	if (cmpOwnership) {
+//		ret.player = cmpOwnership.GetOwner();
+//  } else {
+//    return null;
+//  }
+//
+//  return ret;
+//}

@@ -247,7 +247,7 @@ ProductionItem.prototype.update = function(item) {
     this.cnt.caption = "";
   }
 
-  if (item.rank) {
+  if (item.rank && item.rank !== "Basic") {
     this.rank.sprite = this.RankDirectory + item.rank + ".png";
     this.rank.hidden = false;
   } else {
@@ -278,7 +278,7 @@ ProductionItem.prototype.RankDirectory = "stretched:session/icons/ranks/";
 function ProductionRow(rowIndex, displayLabel, color = { r: 255, g: 255, b: 255 }) {
   let row = Engine.GetGUIObjectByName(`productionRow[${rowIndex}]`);
   let ind = Engine.GetGUIObjectByName(`productionRow[${rowIndex}]Ind`);
-  let sizeTop = rowIndex * this.Height + this.VerticalGap;
+  let sizeTop = rowIndex * (this.Height + this.VerticalGap) + this.MarginTop;
   if (displayLabel)
     sizeTop += ProductionMonitor.prototype.TitleHeight;
 
@@ -306,6 +306,7 @@ ProductionRow.prototype.update = function(entities) {
 }
 
 ProductionRow.prototype.ItemCount = 20;
-ProductionRow.prototype.Height = ProductionItem.prototype.ButtonWidth + ProductionItem.prototype.ProgressBarHeight + 9;
-ProductionRow.prototype.VerticalGap = 8;
+ProductionRow.prototype.Height = ProductionItem.prototype.ButtonWidth + ProductionItem.prototype.ProgressBarHeight;
+ProductionRow.prototype.VerticalGap = 2;
+ProductionRow.prototype.MarginTop = 6;
 ProductionRow.prototype.MaxWidth = "50%";

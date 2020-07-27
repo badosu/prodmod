@@ -13,9 +13,7 @@
           <object name="productionRow[i]Item[j]Icon" size="3 3 31 31" type="image" ghost="true"/>
           <object name="productionRow[i]Item[j]Count" size="3 3 28 34" type="text" ghost="true" buffer_zone="5" font="sans-bold-stroke-14" textcolor="white" text_align="right" text_valign="bottom"/>
           <object name="productionRow[i]Item[j]Prg" sprite="BgBlueDark" size="3 31 3 33" type="image" />
-          <object z="20" size="3 4 13 14" name="productionRow[i]Item[j]Rank" type="image" tooltip_style="sessionToolTipBottom">
-            <translatableAttribute id="tooltip">Rank</translatableAttribute>
-          </object>
+          <object z="20" size="3 4 13 14" name="productionRow[i]Item[j]Rank" type="image" tooltip_style="sessionToolTipBottom" ghost="true" />
         </object>
       </repeat>
     </object>

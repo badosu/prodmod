@@ -231,9 +231,10 @@ ProductionItem.prototype.update = function(item) {
   this.btn.size = btnSize;
 
   let tooltip = item.template.name;
-  if (item.timeRemaining && (!item.foundation || item.timeRemaining > 0)) {
+  if (item.rank && item.rank !== "Basic")
+    tooltip = `${translateWithContext("Rank", item.rank)} ${tooltip}`;
+  if (item.timeRemaining && (!item.foundation || item.timeRemaining > 0))
     tooltip += " - " + Math.ceil(item.timeRemaining) + "s"
-  }
 
   this.btn.tooltip = tooltip;
   this.btn.hidden = false;
@@ -247,10 +248,7 @@ ProductionItem.prototype.update = function(item) {
   }
 
   if (item.rank) {
-    this.rank.tooltip = sprintf(translate("%(rank)s Rank"), {
-      "rank": translateWithContext("Rank", item.rank)
-    });
-    this.rank.sprite = "stretched:session/icons/ranks/" + item.rank + ".png";
+    this.rank.sprite = this.RankDirectory + item.rank + ".png";
     this.rank.hidden = false;
   } else {
     this.rank.hidden = true;
@@ -275,6 +273,7 @@ ProductionItem.prototype.ButtonWidth = 34;
 ProductionItem.prototype.BorderWidth = 3;
 ProductionItem.prototype.ProgressBarHeight = 3;
 ProductionItem.prototype.PortraitDirectory = "stretched:session/portraits/";
+ProductionItem.prototype.RankDirectory = "stretched:session/icons/ranks/";
 
 function ProductionRow(rowIndex, displayLabel, color = { r: 255, g: 255, b: 255 }) {
   let row = Engine.GetGUIObjectByName(`productionRow[${rowIndex}]`);

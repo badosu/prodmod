@@ -86,7 +86,8 @@ ProductionMonitor.prototype.toggleVisibility = function() {
   }
 }
 
-ProductionMonitor.prototype.show = function() {
+ProductionMonitor.prototype.show = function(mode = this.mode) {
+  this.mode = mode;
   this.active = true;
 
   const size = this.container.size;

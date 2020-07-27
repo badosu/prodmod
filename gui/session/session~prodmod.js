@@ -5,12 +5,34 @@ let g_prodmod_ProductionMonitor;
 const g_prodmod_hotkeys = {
 	"prodmod.toggleVisibility": function (ev)
 	{
-    g_prodmod_ProductionMonitor.toggleVisibility();
+    if (ev.type == "hotkeydown")
+      g_prodmod_ProductionMonitor.toggleVisibility();
 		return true;
 	},
 	"prodmod.toggleMode": function (ev)
 	{
-    g_prodmod_ProductionMonitor.onModeToggle();
+    if (ev.type == "hotkeydown")
+      g_prodmod_ProductionMonitor.onModeToggle();
+		return true;
+	},
+	"prodmod.quickShowUnits": function (ev)
+	{
+    if (ev.type == "hotkeydown") {
+      g_prodmod_ProductionMonitor.show(0);
+      g_prodmod_ProductionMonitor.update(true);
+    } else {
+      g_prodmod_ProductionMonitor.hide();
+    }
+		return true;
+	},
+	"prodmod.quickShowProduction": function (ev)
+	{
+    if (ev.type == "hotkeydown") {
+      g_prodmod_ProductionMonitor.show(1);
+      g_prodmod_ProductionMonitor.update(true);
+    } else {
+      g_prodmod_ProductionMonitor.hide();
+    }
 		return true;
 	},
 };
@@ -42,10 +64,8 @@ autociv_patchApplyN("onTick", function(target, that, args) {
 autociv_patchApplyN("handleInputAfterGui", function (target, that, args)
 {
 	let [ev] = args;
-	if ("hotkey" in ev && ev.type == "hotkeydown")
-	{
-		if (ev.hotkey in g_prodmod_hotkeys)
-			return !!g_prodmod_hotkeys[ev.hotkey](ev);
-	}
+	if ("hotkey" in ev && ev.hotkey in g_prodmod_hotkeys)
+  	return !!g_prodmod_hotkeys[ev.hotkey](ev);
+
 	return target.apply(that, args);
 });

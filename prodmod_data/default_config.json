@@ -1,4 +1,6 @@
 {
 	"hotkey.prodmod.toggleVisibility": "Ctrl+Space",
-	"hotkey.prodmod.toggleMode": "Shift+Space"
+	"hotkey.prodmod.toggleMode": "Shift+Space",
+	"hotkey.prodmod.quickShowUnits": "Space+q",
+	"hotkey.prodmod.quickShowProduction": "Space+w"
 }

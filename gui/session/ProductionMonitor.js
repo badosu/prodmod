@@ -118,6 +118,7 @@ ProductionMonitor.prototype.TitleHeight = 20;
 ProductionMonitor.prototype.TickMillis = 500;
 ProductionMonitor.prototype.Top = 420;
 ProductionMonitor.prototype.TopSingle = 84;
+ProductionMonitor.prototype.Ranks = { 'a': 'Advanced', 'b': 'Basic', 'e': 'Elite' };
 ProductionMonitor.prototype.Modes = {
   //2: {
   //  'getQueues': function() {
@@ -168,13 +169,20 @@ ProductionMonitor.prototype.Modes = {
         for (let kind in unitCounts) {
           const template = this.getTemplateData(kind);
 
-          queue.push({
+          let item = {
             "count": unitCounts[kind],
             "template": {
               "name": template.name.generic,
               "icon": template.icon
             }
-          })
+          };
+
+          const segments = kind.split('_');
+          const rank = this.Ranks[segments[segments.length - 1]];
+          if (rank)
+            item['rank'] = rank;
+
+          queue.push(item);
         }
 
         queues[playerId] = queue;
@@ -193,6 +201,7 @@ function ProductionItem(rowIndex, itemIndex, color) {
   this.btn = Engine.GetGUIObjectByName(`productionRow[${rowIndex}]Item[${itemIndex}]Btn`);
   this.cnt = Engine.GetGUIObjectByName(`productionRow[${rowIndex}]Item[${itemIndex}]Count`);
   this.progress = Engine.GetGUIObjectByName(`productionRow[${rowIndex}]Item[${itemIndex}]Prg`);
+  this.rank = Engine.GetGUIObjectByName(`productionRow[${rowIndex}]Item[${itemIndex}]Rank`);
   this.progress.sprite = brightenedSprite(color);
 
   const buttonLeft = this.LeftMargin + (this.ButtonWidth + this.HorizontalGap) * this.itemIndex;
@@ -235,6 +244,16 @@ ProductionItem.prototype.update = function(item) {
     this.cnt.caption = item.production.count;
   } else {
     this.cnt.caption = "";
+  }
+
+  if (item.rank) {
+    this.rank.tooltip = sprintf(translate("%(rank)s Rank"), {
+      "rank": translateWithContext("Rank", item.rank)
+    });
+    this.rank.sprite = "stretched:session/icons/ranks/" + item.rank + ".png";
+    this.rank.hidden = false;
+  } else {
+    this.rank.hidden = true;
   }
 }
 

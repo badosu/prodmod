@@ -6,7 +6,7 @@
   </object>
   <repeat count="8" var="i">
     <object name="productionRow[i]" type="text" size="0 0 100% 40" hidden="true">
-      <object name="productionRow[i]Ind" type="text" size="0 2 6 32" />
+      <object name="productionRow[i]Ind" type="button" tooltip_style="sessionToolTipBottom" size="0 2 6 32" />
 
       <repeat count="20" var="j">
         <object name="productionRow[i]Item[j]Btn" size="0 0 34 37" type="button" tooltip_style="sessionToolTipBottom" style="iconButton" hidden="true">

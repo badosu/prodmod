@@ -35,8 +35,9 @@ ProductionMonitor.prototype.reset = function(simulationState = Engine.GuiInterfa
   this.rows = {};
   for (let i = 0; i < this.players.length; i++) {
     const playerId = this.players[i];
-
-    this.rows[playerId] = new ProductionRow(i, isObserver, playerStates[playerId].color);
+    const playerState = playerStates[playerId];
+    const civName = g_CivData[playerState.civ].Name;
+    this.rows[playerId] = new ProductionRow(i, `${playerState.name} - ${civName}`, isObserver, playerState.color);
   }
 
   if (this.active)
@@ -166,6 +167,8 @@ ProductionMonitor.prototype.Modes = {
   //},
   1: {
     'getQueues': function() {
+      const playerStates = this.simulationState.players;
+
       let queues = {};
       for (let playerId of this.players) {
         queues[playerId] = [];
@@ -182,6 +185,8 @@ ProductionMonitor.prototype.Modes = {
 
         // Push non foundation entities to queue
         if (!entityState.foundation) {
+          entityState.playerName = playerStates[entityState.player].name;
+
           queues[entityState.player].push(entityState);
 
           continue;
@@ -204,6 +209,8 @@ ProductionMonitor.prototype.Modes = {
         const [count, foundationState] = foundationCounts[key];
         if (count > 1)
           foundationState.count = count;
+
+        foundationState.playerName = playerStates[foundationState.player].name;
         queues[foundationState.player].push(foundationState);
       }
 
@@ -219,7 +226,8 @@ ProductionMonitor.prototype.Modes = {
       let queues = {};
 
       for (let playerId of this.players) {
-        const unitCounts = playerStates[playerId]["typeCountsByClass"]["Unit"];
+        const playerState = playerStates[playerId];
+        const unitCounts = playerState["typeCountsByClass"]["Unit"];
 
         let queue = [];
         for (let kind in unitCounts) {
@@ -227,10 +235,11 @@ ProductionMonitor.prototype.Modes = {
 
           let item = {
             "count": unitCounts[kind],
+            "playerName": playerState.name,
             "template": {
               "name": template.name.generic,
               "icon": template.icon
-            }
+            },
           };
 
           const segments = kind.split('_');
@@ -286,11 +295,17 @@ ProductionItem.prototype.update = function(item) {
   this.progress.size = progressSize;
   this.btn.size = btnSize;
 
-  let tooltip = item.template.name;
+  let tooltip = "";
+
+  if (item.playerName)
+    tooltip = item.playerName.split(' ')[0] + ' - ';
+
   if (item.rank && item.rank !== "Basic")
-    tooltip = `${translateWithContext("Rank", item.rank)} ${tooltip}`;
+    tooltip += translateWithContext("Rank", item.rank) + ' ';
+
+  tooltip += item.template.name;
   if (item.timeRemaining && (!item.foundation || item.timeRemaining > 0))
-    tooltip += " - " + Math.ceil(item.timeRemaining) + "s"
+    tooltip += `: ${Math.ceil(item.timeRemaining)}s`
 
   this.btn.tooltip = tooltip;
   this.btn.hidden = false;
@@ -331,7 +346,7 @@ ProductionItem.prototype.ProgressBarHeight = 3;
 ProductionItem.prototype.PortraitDirectory = "stretched:session/portraits/";
 ProductionItem.prototype.RankDirectory = "stretched:session/icons/ranks/";
 
-function ProductionRow(rowIndex, displayLabel, color = { r: 255, g: 255, b: 255 }) {
+function ProductionRow(rowIndex, tooltip, displayLabel, color = { r: 255, g: 255, b: 255 }) {
   let row = Engine.GetGUIObjectByName(`productionRow[${rowIndex}]`);
   let ind = Engine.GetGUIObjectByName(`productionRow[${rowIndex}]Ind`);
   let sizeTop = rowIndex * (this.Height + this.VerticalGap) + this.MarginTop;
@@ -341,7 +356,9 @@ function ProductionRow(rowIndex, displayLabel, color = { r: 255, g: 255, b: 255 
   row.size = `0 ${sizeTop} ${this.MaxWidth} ${sizeTop + this.Height}`;
   row.hidden = false;
   const colorSprite = `color: ${color.r * 255} ${color.g * 255} ${color.b * 255} 255`;
+
   ind.sprite = colorSprite;
+  ind.tooltip = tooltip;
 
   this.items = [];
   this.row = row;

@@ -147,24 +147,13 @@ ProductionMonitor.prototype.Top = 420;
 ProductionMonitor.prototype.TopSingle = 84;
 ProductionMonitor.prototype.Ranks = { 'a': 'Advanced', 'b': 'Basic', 'e': 'Elite' };
 ProductionMonitor.prototype.Modes = {
-  //2: {
-  //  'getQueues': function() {
-  //    let queues = {};
-  //    for (let playerId of this.players) {
-  //      queues[playerId] = [];
-  //      pp(Engine.GuiInterfaceCall("prodmod_GetResearchedTechs", playerId));
-  //    }
-  //    //playerIdconst playerQuery = this.singlePlayer() ? this.players[0] : -1;
-  //    //playerIdconst entityStates = Engine.GuiInterfaceCall("prodmod_GetPlayersProduction", playerQuery);
-  //    //playerIdfor (let entityState of entityStates.map(e => e.state)) {
-  //    //playerId  queues[entityState.player].push(entityState);
-  //    //playerId}
-
-  //    return queues;
-  //  },
-  //  'label': 'Tech',
-  //  'tooltip': 'Switch to Units view'
-  //},
+  2: {
+    'getQueues': function() {
+      return Engine.GuiInterfaceCall("prodmod_GetResearchedTechs", this.players);
+    },
+    'label': 'Tech',
+    'tooltip': 'Switch to Units view'
+  },
   1: {
     'getQueues': function() {
       const playerStates = this.simulationState.players;

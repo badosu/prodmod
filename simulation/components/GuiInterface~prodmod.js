@@ -36,16 +36,70 @@ function autociv_patchApplyN()
     prefix[method] = new Proxy(prefix[method], { apply: patch });
 }
 
-GuiInterface.prototype.prodmod_GetResearchedTechs = function(_currentPlayer, playerId)
+GuiInterface.prototype.prodmod_GetResearchedTechs = function(_currentPlayer, players)
 {
-	let cmpTechnologyManager = QueryPlayerIDInterface(playerId, IID_TechnologyManager);
-  if (!cmpTechnologyManager)
-    return null;
+  const internalTechs = ["pair", "bonus", "phase", "wooden_walls", "civpenalty"];
 
-  return {
-    "player": playerId,
-    "researchedTechs": cmpTechnologyManager.GetResearchedTechs()
-  };
+  let ret = {};
+	for (let playerId of players) {
+	  const cmpTechnologyManager = QueryPlayerIDInterface(playerId, IID_TechnologyManager);
+    if (!cmpTechnologyManager)
+      continue;
+
+    let result = [];
+
+    const techs = Array.from(cmpTechnologyManager.GetResearchedTechs());
+    for(let tech of techs.filter(t => internalTechs.every(s => t.indexOf(s) == -1 ))) {
+      const technologyTemplate = TechnologyTemplates.Get(tech);
+
+      if (!technologyTemplate)
+        continue;
+
+      result.push({
+        "template": {
+          "name": technologyTemplate.genericName,
+          "icon": "technologies/" + technologyTemplate.icon
+        }
+      });
+    }
+
+	  for (let tech of cmpTechnologyManager.GetStartedTechs())
+	  {
+      const technologyTemplate = TechnologyTemplates.Get(tech);
+
+      if (!technologyTemplate)
+        continue;
+
+      let ret = {
+        "template": {
+          "name": technologyTemplate.genericName,
+          "icon": "technologies/" + technologyTemplate.icon
+        }
+      };
+
+	  	ret.researcher = cmpTechnologyManager.GetResearcher(tech);
+
+	    let cmpPosition = Engine.QueryInterface(ret.researcher, IID_Position);
+	    if (cmpPosition && cmpPosition.IsInWorld())
+	    	ret.position = cmpPosition.GetPosition();
+
+	  	let cmpProductionQueue = Engine.QueryInterface(ret.researcher, IID_ProductionQueue);
+	  	if (cmpProductionQueue) {
+        const batch = cmpProductionQueue.GetQueue()[0];
+	  		ret.progress = batch.progress;
+	  		ret.timeRemaining = Math.round(batch.timeRemaining / 1000.0);
+	  	} else {
+	  		ret.progress = 0;
+	  		ret.timeRemaining = 0;
+	  	}
+
+      result.push(ret);
+	  }
+
+    ret[playerId] = result;
+  }
+
+	return ret;
 }
 
 GuiInterface.prototype.prodmod_GetPlayersProduction = function(_currentPlayer, player)

@@ -7,6 +7,7 @@ function ProductionMonitor(viewedPlayer, active = true, mode = 0) {
   this.viewedPlayer = viewedPlayer;
   this.mode = mode;
   this.active = active;
+  this.rows = {};
 
   this.titleContainer.onPress = this.onModeToggle.bind(this);
 
@@ -15,19 +16,27 @@ function ProductionMonitor(viewedPlayer, active = true, mode = 0) {
 
 ProductionMonitor.prototype.reset = function(simulationState = Engine.GuiInterfaceCall('GetSimulationState')) {
   this.simulationState = simulationState;
+
   const playerStates = simulationState.players;
   const isObserver = !playerStates[this.viewedPlayer] || playerStates[this.viewedPlayer].state != "active";
 
-  this.players = isObserver ?
-    Array(playerStates.length - 1).fill(0).map((_x, i) => i + 1)
-    : [this.viewedPlayer];
+  if (isObserver) {
+    this.players = [];
+    for (let i = 1; i < playerStates.length; i++)
+      if (playerStates[i].state === "active")
+        this.players.push(i);
+  } else
+    this.players = [this.viewedPlayer];
+
+  // Hide previous rows if reset from previous state
+  for (let row in this.rows)
+    this.rows[row].hide();
 
   this.rows = {};
-  for (let playerId of this.players) {
-    const rowIndex = isObserver ? playerId - 1 : 0;
-    const playerColor = playerStates[playerId].color;
+  for (let i = 0; i < this.players.length; i++) {
+    const playerId = this.players[i];
 
-    this.rows[playerId] = new ProductionRow(rowIndex, isObserver, playerColor);
+    this.rows[playerId] = new ProductionRow(i, isObserver, playerStates[playerId].color);
   }
 
   if (this.active)
@@ -55,12 +64,17 @@ ProductionMonitor.prototype.update = function(forceRender = false) {
 
   this.simulationState = Engine.GuiInterfaceCall('GetSimulationState')
   const playerStates = this.simulationState.players;
-  const isObserver = !playerStates[this.viewedPlayer] || playerStates[this.viewedPlayer].state != "active";
 
-  // Switch to overview when user was a player and is defeated or wins
+  // Reset Monitor when a player is not active anymore
   // TODO: Use a24 registerPlayersFinishedHandler
-  if (this.singlePlayer() && isObserver)
-    this.reset(this.simulationState);
+  if (this.singlePlayer()) {
+    if (playerStates[this.viewedPlayer].state != "active")
+      this.reset(this.simulationState);
+  } else {
+    const activePlayers = playerStates.filter(playerState => playerState.civ != "gaia" && playerState.state == "active");
+    if (activePlayers.length !== this.players.length)
+      this.reset(this.simulationState);
+  }
 
   const queues = this.Modes[this.mode].getQueues.bind(this)();
 
@@ -68,9 +82,8 @@ ProductionMonitor.prototype.update = function(forceRender = false) {
 }
 
 ProductionMonitor.prototype.updateRows = function(queues) {
-  for (let playerId of this.players) {
+  for (let playerId of this.players)
     this.rows[playerId].update(queues[playerId]);
-  }
 }
 
 ProductionMonitor.prototype.hide = function() {
@@ -79,11 +92,7 @@ ProductionMonitor.prototype.hide = function() {
 }
 
 ProductionMonitor.prototype.toggleVisibility = function() {
-  if (this.active) {
-    this.hide();
-  } else {
-    this.show();
-  }
+  this.active ? this.hide() : this.show();
 }
 
 ProductionMonitor.prototype.show = function(mode = this.mode) {
@@ -91,17 +100,19 @@ ProductionMonitor.prototype.show = function(mode = this.mode) {
   this.active = true;
 
   const size = this.container.size;
-
   size.top = this.singlePlayer() ? this.TopSingle : this.Top;
-
+  size.bottom = this.TitleHeight + ProductionRow.prototype.MarginTop + this.players.length * (
+    ProductionRow.prototype.VerticalGap + ProductionRow.prototype.Height
+  ) + size.top;
   this.container.size = size;
-  this.container.hidden = false;
 
   if (!this.singlePlayer()) {
     this.title.caption = this.Modes[this.mode].label;
     this.titleContainer.tooltip = this.Modes[this.mode].tooltip;
     this.titleContainer.hidden = false;
   }
+
+  this.container.hidden = false;
 }
 
 ProductionMonitor.prototype.singlePlayer = function() {
@@ -315,6 +326,7 @@ function ProductionRow(rowIndex, displayLabel, color = { r: 255, g: 255, b: 255 
   ind.sprite = colorSprite;
 
   this.items = [];
+  this.row = row;
 
   for (let i = 0; i < this.ItemCount; i++)
     this.items.push(new ProductionItem(rowIndex, i, color));
@@ -332,8 +344,12 @@ ProductionRow.prototype.update = function(entities) {
   }
 }
 
+ProductionRow.prototype.hide = function() {
+  this.row.hidden = true;
+};
+
 ProductionRow.prototype.ItemCount = 20;
 ProductionRow.prototype.Height = ProductionItem.prototype.ButtonWidth + ProductionItem.prototype.ProgressBarHeight;
-ProductionRow.prototype.VerticalGap = 2;
+ProductionRow.prototype.VerticalGap = 0;
 ProductionRow.prototype.MarginTop = 6;
 ProductionRow.prototype.MaxWidth = "50%";

@@ -3,20 +3,17 @@
 let g_prodmod_ProductionMonitor;
 
 const g_prodmod_hotkeys = {
-	"prodmod.toggleVisibility": function (ev)
-	{
+	"prodmod.toggleVisibility": function (ev) {
     if (ev.type == "hotkeydown")
       g_prodmod_ProductionMonitor.toggleVisibility();
 		return true;
 	},
-	"prodmod.toggleMode": function (ev)
-	{
+	"prodmod.toggleMode": function (ev) {
     if (ev.type == "hotkeydown")
       g_prodmod_ProductionMonitor.onModeToggle();
 		return true;
 	},
-	"prodmod.quickShowUnits": function (ev)
-	{
+	"prodmod.quickShowUnits": function (ev) {
     if (ev.type == "hotkeydown") {
       g_prodmod_ProductionMonitor.show(0);
       g_prodmod_ProductionMonitor.update(true);
@@ -25,10 +22,18 @@ const g_prodmod_hotkeys = {
     }
 		return true;
 	},
-	"prodmod.quickShowProduction": function (ev)
-	{
+	"prodmod.quickShowProduction": function (ev) {
     if (ev.type == "hotkeydown") {
       g_prodmod_ProductionMonitor.show(1);
+      g_prodmod_ProductionMonitor.update(true);
+    } else {
+      g_prodmod_ProductionMonitor.hide();
+    }
+		return true;
+	},
+	"prodmod.quickShowTech": function (ev) {
+    if (ev.type == "hotkeydown") {
+      g_prodmod_ProductionMonitor.show(2);
       g_prodmod_ProductionMonitor.update(true);
     } else {
       g_prodmod_ProductionMonitor.hide();

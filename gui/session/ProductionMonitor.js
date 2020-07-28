@@ -82,8 +82,23 @@ ProductionMonitor.prototype.update = function(forceRender = false) {
 }
 
 ProductionMonitor.prototype.updateRows = function(queues) {
-  for (let playerId of this.players)
+  let maxItems = 0;
+  for (let playerId of this.players) {
+    // Sanity check, just for the sake
+    if (!queues[playerId])
+      continue;
+
+    const queueLength = queues[playerId].length;
+    if (queueLength > maxItems)
+      maxItems = queueLength;
+
     this.rows[playerId].update(queues[playerId]);
+  }
+
+  let size = this.container.size;
+  size.right = ProductionItem.prototype.LeftMargin + ProductionItem.prototype.ButtonWidth +
+    (ProductionItem.prototype.ButtonWidth + ProductionItem.prototype.HorizontalGap) * Math.max(maxItems - 1, 0);
+  this.container.size = size;
 }
 
 ProductionMonitor.prototype.hide = function() {
@@ -157,11 +172,14 @@ ProductionMonitor.prototype.Modes = {
       }
 
       const playerQuery = this.singlePlayer() ? this.players[0] : -1;
-
       const entityStates = Engine.GuiInterfaceCall("prodmod_GetPlayersProduction", playerQuery).map(e => e.state);
       let foundationCounts = {};
 
       for (let entityState of entityStates) {
+        // Sanity check, in some rare occasions this might happen
+        if (!queues[entityState.player])
+          continue;
+
         // Push non foundation entities to queue
         if (!entityState.foundation) {
           queues[entityState.player].push(entityState);

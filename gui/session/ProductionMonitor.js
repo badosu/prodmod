@@ -219,6 +219,8 @@ ProductionMonitor.prototype.Modes = {
         const unitCounts = playerState["typeCountsByClass"]["Unit"];
 
         let queue = [];
+        const templates = Object.keys(unitCounts);
+        const positions = Engine.GuiInterfaceCall('prodmod_GetTemplatePositions', [playerId, templates]);
         for (let kind in unitCounts) {
           const template = this.getTemplateData(kind);
 
@@ -229,6 +231,7 @@ ProductionMonitor.prototype.Modes = {
               "name": template.name.generic,
               "icon": template.icon
             },
+            "position": positions[templates.indexOf(kind)]
           };
 
           const segments = kind.split('_');

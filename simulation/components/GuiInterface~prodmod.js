@@ -125,6 +125,37 @@ GuiInterface.prototype.prodmod_RetrieveAndFilterPlayerEntities = function(player
   return result;
 }
 
+GuiInterface.prototype.prodmod_GetTemplatePositions = function(_currentPlayer, args)
+{
+  const [player, templates] = args;
+
+  if (!templates || templates.length == 0)
+    return [];
+
+  const cmpRangeManager = Engine.QueryInterface(SYSTEM_ENTITY, IID_RangeManager);
+	const cmpTemplateManager = Engine.QueryInterface(SYSTEM_ENTITY, IID_TemplateManager);
+
+  let result = new Array(templates.length).fill(null);
+  let remainingTemplates = [...templates];
+
+  for (let entity of cmpRangeManager.GetEntitiesByPlayer(player)) {
+    const templateName = cmpTemplateManager.GetCurrentTemplateName(entity);
+
+    const rIndex = remainingTemplates.indexOf(templateName);
+    if (rIndex < 0)
+      continue;
+
+	  const cmpPosition = Engine.QueryInterface(entity, IID_Position);
+	  if (!cmpPosition || !cmpPosition.IsInWorld())
+      continue;
+
+    result[templates.indexOf(templateName)] = cmpPosition.GetPosition();
+    remainingTemplates.splice(rIndex, 1);
+  }
+
+  return result;
+}
+
 GuiInterface.prototype.prodmod_GetProductionState = function(ent)
 {
   let ret = {};
@@ -214,6 +245,7 @@ GuiInterface.prototype.prodmod_GetProductionState = function(ent)
 let prodmod_exposedFunctions = {
     "prodmod_GetPlayersProduction": 1,
     "prodmod_GetResearchedTechs": 1,
+    "prodmod_GetTemplatePositions": 1,
 };
 
 autociv_patchApplyN(GuiInterface.prototype, "ScriptCall", function (target, that, args)

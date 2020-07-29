@@ -221,7 +221,31 @@ ProductionMonitor.prototype.Modes = {
         let queue = [];
         const templates = Object.keys(unitCounts);
         const positions = Engine.GuiInterfaceCall('prodmod_GetTemplatePositions', [playerId, templates]);
+
+        // Group duplicate templates
+        // e.g. units/cart_mechanical_siege_ballista_packed, units/cart_mechanical_siege_ballista_unpacked
+        // resource|gaia/fauna_goat_trainable, gaia/fauna_goat_trainable
         for (let kind in unitCounts) {
+          let newTemplate;
+
+          if (kind.endsWith('_unpacked')) {
+            const segments = kind.split('_');
+            const templateRoot = segments.slice(0, segments.length - 1).join('_')
+            newTemplate = templateRoot + '_packed';
+          } else if (kind.startsWith('resource|')) {
+            newTemplate = kind.slice('9');
+          } else {
+            continue;
+          }
+
+          unitCounts[newTemplate] = (unitCounts[newTemplate] || 0) + unitCounts[kind];
+          delete unitCounts[kind];
+        }
+
+        for (let kind in unitCounts) {
+          if (!unitCounts[kind])
+            continue;
+
           const template = this.getTemplateData(kind);
 
           let item = {

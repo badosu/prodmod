@@ -133,7 +133,7 @@ GuiInterface.prototype.prodmod_GetTemplatePositions = function(_currentPlayer, a
     return [];
 
   const cmpRangeManager = Engine.QueryInterface(SYSTEM_ENTITY, IID_RangeManager);
-	const cmpTemplateManager = Engine.QueryInterface(SYSTEM_ENTITY, IID_TemplateManager);
+  const cmpTemplateManager = Engine.QueryInterface(SYSTEM_ENTITY, IID_TemplateManager);
 
   let result = new Array(templates.length).fill(null);
   let remainingTemplates = [...templates];
@@ -145,12 +145,15 @@ GuiInterface.prototype.prodmod_GetTemplatePositions = function(_currentPlayer, a
     if (rIndex < 0)
       continue;
 
-	  const cmpPosition = Engine.QueryInterface(entity, IID_Position);
-	  if (!cmpPosition || !cmpPosition.IsInWorld())
+    const cmpPosition = Engine.QueryInterface(entity, IID_Position);
+    if (!cmpPosition || !cmpPosition.IsInWorld())
       continue;
 
     result[templates.indexOf(templateName)] = cmpPosition.GetPosition();
     remainingTemplates.splice(rIndex, 1);
+
+    if (remainingTemplates.length == 0)
+      break;
   }
 
   return result;

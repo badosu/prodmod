@@ -229,11 +229,9 @@ ProductionMonitor.prototype.Modes = {
           let newTemplate;
 
           if (kind.endsWith('_unpacked')) {
-            const segments = kind.split('_');
-            const templateRoot = segments.slice(0, segments.length - 1).join('_')
-            newTemplate = templateRoot + '_packed';
+            newTemplate = kind.slice(0, kind.length - 9) + '_packed';
           } else if (kind.startsWith('resource|')) {
-            newTemplate = kind.slice('9');
+            newTemplate = kind.slice(9);
           } else {
             continue;
           }

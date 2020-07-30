@@ -21,7 +21,7 @@ TechMode.prototype.RankableTechs = [
   ["heal_rate", "heal_rate_2"]
 ];
 
-TechMode.prototype.getQueues = function(players, _simulationState) {
+TechMode.prototype.getQueues = function(players, simulationState) {
   let techs = Engine.GuiInterfaceCall("prodmod_GetResearchedTechs", players);
 
   // Could just return the value above if we didn't have to group techs :`-(
@@ -29,6 +29,8 @@ TechMode.prototype.getQueues = function(players, _simulationState) {
   const rankableTechsSize = this.RankableTechs.length;
 
   for (let playerId in techs) {
+    const playerName = simulationState.players[playerId].name;
+
     let extractedTechGroups = new Array(rankableTechsSize).fill(null).map(() => []);
     let playerTechs = techs[playerId];
     let newPlayerTechs = [];
@@ -36,11 +38,13 @@ TechMode.prototype.getQueues = function(players, _simulationState) {
 
     // for each tech
     for (let playerTech of playerTechs) {
+      playerTech.tooltip = templateTooltip(playerName, playerTech);
+
       for (let i = 0; i < rankableTechsSize; i++) {
         let rankableTechGroup = this.RankableTechs[i];
 
         for (let rankableTech of rankableTechGroup) {
-          if (playerTech.template.template == rankableTech) {
+          if (playerTech.templateName == rankableTech) {
             extractedTechGroups[i].push(playerTech);
             // break tech search
             i = rankableTechsSize;
@@ -50,8 +54,9 @@ TechMode.prototype.getQueues = function(players, _simulationState) {
         }
       }
 
-      if (!isRankableTech)
+      if (!isRankableTech) {
         newPlayerTechs.push(playerTech);
+      }
 
       isRankableTech = false;
     }
@@ -63,10 +68,9 @@ TechMode.prototype.getQueues = function(players, _simulationState) {
         continue;
 
       let lastTech = techGroup[ranks - 1];
-      if (ranks > 1 && !lastTech.template.template.startsWith('phase_')) {
+      if (ranks > 1 && !lastTech.templateName.startsWith('phase_')) {
         lastTech.rank = Monitor.prototype.Ranks[rankKeys[ranks - 1]];
-        lastTech.template.icon = techGroup[0].template.icon;
-        lastTech.hideRankInfo = true;
+        lastTech.icon = techGroup[0].icon;
       }
       extractedTechs.push(lastTech);
     }

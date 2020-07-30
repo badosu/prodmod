@@ -25,7 +25,7 @@ UnitsMode.prototype.getQueues = function(players, simulationState) {
 
     let queue = [];
     const templates = Object.keys(unitCounts);
-    const positions = Engine.GuiInterfaceCall('prodmod_GetTemplatePositions', [playerId, templates]);
+    const states = Engine.GuiInterfaceCall('prodmod_GetTemplateEntities', [playerId, templates]);
 
     // Group duplicate templates
     // e.g. units/cart_mechanical_siege_ballista_packed, units/cart_mechanical_siege_ballista_unpacked
@@ -48,22 +48,40 @@ UnitsMode.prototype.getQueues = function(players, simulationState) {
       if (!unitCounts[kind])
         continue;
 
+      const state = states[templates.indexOf(kind)];
+
+      if (!state)
+        continue;
+
       const template = this.getTemplateData(kind);
 
       let item = {
         "count": unitCounts[kind],
-        "playerName": playerState.name,
-        "template": {
-          "name": template.name.generic,
-          "icon": template.icon
-        },
-        "position": positions[templates.indexOf(kind)]
+        "icon": template.icon,
+        "position": state.position
       };
 
       const segments = kind.split('_');
       const rank = Monitor.prototype.Ranks[segments[segments.length - 1]];
       if (rank)
         item['rank'] = rank;
+
+      let playerName = headerFont(playerState.name.split(' ')[0]);
+
+      let tooltip = `${playerName} - ${unitNameWithRank(template.name.generic, rank)}\n`;
+      tooltip += [
+        getAttackTooltip,
+        getSplashDamageTooltip,
+        getHealerTooltip,
+        getArmorTooltip,
+        getGatherTooltip,
+        getSpeedTooltip,
+        getGarrisonTooltip,
+        getProjectilesTooltip,
+        getResourceTrickleTooltip
+      ].map(func => func(state)).filter(tip => tip).join("\n");
+
+      item.tooltip = tooltip;
 
       queue.push(item);
     }

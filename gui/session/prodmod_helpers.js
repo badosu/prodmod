@@ -34,6 +34,26 @@ function brightenedSprite(color) {
   return `color: ${Math.floor(r)} ${Math.floor(g)} ${Math.floor(b)} 255`;
 }
 
+function templateTooltip(playerName, template) {
+  let tooltip = headerFont(playerName.split(' ')[0]) + ' - ' + template.name;
+
+  if (template.timeRemaining && (!template.foundation || template.timeRemaining > 0))
+    tooltip += `: ${Math.ceil(template.timeRemaining)}s`
+
+  if (template.description)
+    tooltip += "\n" + template.description;
+
+  return tooltip;
+}
+
+function unitNameWithRank(name, rank) {
+  let ret = "";
+  if (rank && rank !== "Basic")
+    ret += translateWithContext("Rank", rank) + " ";
+
+  return ret + name;
+}
+
 function pp(str) {
   if (typeof str === 'undefined') {
     str = 'undefined';

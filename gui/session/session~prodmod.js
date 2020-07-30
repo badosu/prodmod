@@ -3,6 +3,11 @@
 let g_prodmod_Monitor;
 
 const g_prodmod_hotkeys = {
+	"prodmod.toggleShowNames": function (ev) {
+    if (ev.type == "hotkeydown")
+      g_prodmod_Monitor.toggleShowNames();
+		return true;
+	},
 	"prodmod.toggleVisibility": function (ev) {
     if (ev.type == "hotkeydown")
       g_prodmod_Monitor.toggleVisibility();
@@ -44,8 +49,9 @@ const g_prodmod_hotkeys = {
 
 function prodmod_init() {
   const enabled = Engine.ConfigDB_GetValue("user", "prodmod.enabled") == "true";
+  const showNames = Engine.ConfigDB_GetValue("user", "prodmod.showNames") == "true";
 
-  g_prodmod_Monitor = new Monitor(g_ViewedPlayer, enabled);
+  g_prodmod_Monitor = new Monitor(g_ViewedPlayer, enabled, showNames);
 }
 
 // TODO: Use a24 registerPlayersInitHandler

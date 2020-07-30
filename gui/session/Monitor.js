@@ -1,7 +1,8 @@
-function Monitor(viewedPlayer, active = true, mode = 0, modes = [UnitsMode, ProductionMode, TechMode]) {
+function Monitor(viewedPlayer, active = true, showNames = true, mode = 0, modes = [UnitsMode, ProductionMode, TechMode]) {
   this.container = Engine.GetGUIObjectByName('Monitor');
   this.title = Engine.GetGUIObjectByName('MonitorTitle');
   this.titleContainer = Engine.GetGUIObjectByName('MonitorTitleContainer');
+  this.showNames = showNames;
 
   this.modes = modes.map((m) => {
     let instance = Object.create(m.prototype);
@@ -30,8 +31,10 @@ Monitor.prototype.reset = function(simulationState = Engine.GuiInterfaceCall('Ge
     for (let i = 1; i < playerStates.length; i++)
       if (playerStates[i].state === "active")
         this.players.push(i);
-  } else
+  } else {
     this.players = [this.viewedPlayer];
+    this.showNames = false;
+  }
 
   // Hide previous rows if reset from previous state
   for (let row in this.rows)
@@ -40,9 +43,7 @@ Monitor.prototype.reset = function(simulationState = Engine.GuiInterfaceCall('Ge
   this.rows = {};
   for (let i = 0; i < this.players.length; i++) {
     const playerId = this.players[i];
-    const playerState = playerStates[playerId];
-    const civName = g_CivData[playerState.civ].Name;
-    this.rows[playerId] = new MonitorRow(i, `${playerState.name} - ${civName}`, isObserver, playerState.color);
+    this.rows[playerId] = new MonitorRow(i, playerStates[playerId], isObserver);
   }
 
   if (this.active)
@@ -54,6 +55,11 @@ Monitor.prototype.onModeToggle = function() {
   this.mode %= Object.keys(this.modes).length;
 
   this.show();
+  this.update(true);
+}
+
+Monitor.prototype.toggleShowNames = function() {
+  this.showNames = !this.showNames;
   this.update(true);
 }
 
@@ -85,6 +91,7 @@ Monitor.prototype.update = function(forceRender = false) {
 }
 
 Monitor.prototype.updateRows = function(queues) {
+  const playerStates = this.simulationState.players;
   let maxItems = 0;
   for (let playerId of this.players) {
     // Sanity check, just for the sake
@@ -95,7 +102,14 @@ Monitor.prototype.updateRows = function(queues) {
     if (queueLength > maxItems)
       maxItems = queueLength;
 
-    this.rows[playerId].update(queues[playerId]);
+    const playerState = playerStates[playerId];
+    let label = null;
+    if (this.showNames) {
+      label = playerState.name.split(' ')[0].slice(0, 8);
+      label += `${label.length < 5 ? "\n" : " "}${playerState.popCount}/${playerState.popLimit}`;
+    }
+
+    this.rows[playerId].update(queues[playerId], label);
   }
 
   let size = this.container.size;

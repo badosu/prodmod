@@ -13,7 +13,7 @@ ProductionMode.prototype.getQueues = function(players, simulationState) {
   }
 
   const playerQuery = players.length === 1 ? players[0] : -1;
-  const entityStates = Engine.GuiInterfaceCall("prodmod_GetPlayersProduction", playerQuery).map(e => e.state);
+  const entityStates = Engine.GuiInterfaceCall("prodmod_GetPlayersProduction", playerQuery);
   let foundationCounts = {};
 
   for (let entityState of entityStates) {
@@ -21,24 +21,26 @@ ProductionMode.prototype.getQueues = function(players, simulationState) {
     if (!queues[entityState.player])
       continue;
 
+    entityState.tooltip = templateTooltip(playerStates[entityState.player].name, entityState);
+
     // Push non foundation entities to queue
     if (!entityState.foundation) {
-      entityState.playerName = playerStates[entityState.player].name;
-
       queues[entityState.player].push(entityState);
 
       continue;
     }
 
     // Group buildings into single item
-    const key = entityState.player.toString() + entityState.template.name;
+    const key = entityState.player.toString() + entityState.templateName;
     const entry = foundationCounts[key];
 
     if (!entry) {
       foundationCounts[key] = [1, entityState];
     } else {
       foundationCounts[key][0]++;
-      if (foundationCounts[key][1].progress < entityState.progress)
+      const foundationProgress = foundationCounts[key][1].progress;
+      const entityProgress = entityState.progress;
+      if (!foundationProgress || (entityProgress && foundationProgress < entityProgress))
         foundationCounts[key][1] = entityState;
     }
   }

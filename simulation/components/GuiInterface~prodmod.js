@@ -56,11 +56,9 @@ GuiInterface.prototype.prodmod_GetResearchedTechs = function(_currentPlayer, pla
         continue;
 
       result.push({
-        "template": {
-          "name": technologyTemplate.genericName,
-          "icon": "technologies/" + technologyTemplate.icon,
-          "template": tech,
-        },
+        "icon": "technologies/" + technologyTemplate.icon,
+        "templateName": tech,
+        "name": technologyTemplate.genericName,
         "description": technologyTemplate.tooltip
       });
     }
@@ -73,11 +71,9 @@ GuiInterface.prototype.prodmod_GetResearchedTechs = function(_currentPlayer, pla
         continue;
 
       let ret = {
-        "template": {
-          "name": technologyTemplate.genericName,
-          "icon": "technologies/" + technologyTemplate.icon,
-          "template": tech
-        },
+        "icon": "technologies/" + technologyTemplate.icon,
+        "templateName": tech,
+        "name": technologyTemplate.genericName,
         "description": technologyTemplate.tooltip
       };
 
@@ -108,28 +104,92 @@ GuiInterface.prototype.prodmod_GetResearchedTechs = function(_currentPlayer, pla
 
 GuiInterface.prototype.prodmod_GetPlayersProduction = function(_currentPlayer, player)
 {
-  return this.prodmod_RetrieveAndFilterPlayerEntities(player, this.prodmod_GetProductionState);
-}
-
-GuiInterface.prototype.prodmod_RetrieveAndFilterPlayerEntities = function(player, stateFilter)
-{
   const cmpRangeManager = Engine.QueryInterface(SYSTEM_ENTITY, IID_RangeManager);
 	const entities = (player && player > 0) ? cmpRangeManager.GetEntitiesByPlayer(player) : cmpRangeManager.GetNonGaiaEntities();
 
   let result = [];
-  for (let entity of entities) {
-    const state = stateFilter(entity);
+  for (let ent of entities) {
+    let ret = {};
 
-    if (!state)
+	  let cmpOwnership = Engine.QueryInterface(ent, IID_Ownership);
+	  if (cmpOwnership)
+	  	ret.player = cmpOwnership.GetOwner();
+    else
       continue;
 
-    result.push({ "entId": entity, "state": state });
+	  let cmpTemplateManager = Engine.QueryInterface(SYSTEM_ENTITY, IID_TemplateManager);
+
+	  let cmpFoundation = QueryMiragedInterface(ent, IID_Foundation);
+	  if (cmpFoundation) {
+    	if (Engine.QueryInterface(ent, IID_Mirage))
+    		continue;
+
+      const templateName = cmpTemplateManager.GetCurrentTemplateName(ent);
+	    let template = cmpTemplateManager.GetTemplate(templateName);
+	    if (!template || !template.Identity)
+	    	continue;
+
+      ret.templateName = templateName;
+      ret.name = template.Identity.GenericName;
+      ret.icon = template.Identity.Icon;
+	  	ret.foundation = 1;
+
+	    let cmpHealth = QueryMiragedInterface(ent, IID_Health);
+	    if (!cmpHealth)
+        continue;
+
+    	ret.hitpoints = cmpHealth.GetHitpoints();
+    	ret.maxHitpoints = cmpHealth.GetMaxHitpoints();
+      if (ret.hitpoints > 1)
+        ret.progress = ret.hitpoints / ret.maxHitpoints;
+      ret.timeRemaining = cmpFoundation.GetBuildTime().timeRemaining;
+    } else {
+      let cmpProductionQueue = Engine.QueryInterface(ent, IID_ProductionQueue);
+      if (!cmpProductionQueue)
+        continue;
+
+      const queue = cmpProductionQueue.GetQueue();
+      if (queue.length == 0)
+        continue;
+
+      const batch = queue[0];
+	  	ret.count = batch.count;
+      ret.progress = batch.progress;
+      ret.timeRemaining = batch.timeRemaining / 1000.0;
+
+      if (batch.unitTemplate) {
+	      let unitTemplate = cmpTemplateManager.GetTemplate(batch.unitTemplate);
+
+	      if (!unitTemplate || !unitTemplate.Identity)
+	      	continue;
+
+        ret.templateName = batch.unitTemplate;
+        ret.name = unitTemplate.Identity.GenericName;
+        ret.icon = unitTemplate.Identity.Icon;
+      } else if (batch.technologyTemplate) {
+        let technologyTemplate = TechnologyTemplates.Get(batch.technologyTemplate);
+
+        if (!technologyTemplate)
+          continue;
+
+        ret.templateName = batch.technologyTemplate;
+        ret.description = technologyTemplate.description;
+        ret.name = technologyTemplate.genericName;
+        ret.icon = "technologies/" + technologyTemplate.icon;
+      }
+    }
+
+	  let cmpPosition = Engine.QueryInterface(ent, IID_Position);
+	  if (cmpPosition && cmpPosition.IsInWorld())
+	  	ret.position = cmpPosition.GetPosition();
+
+    result.push(ret);
   }
 
   return result;
 }
 
-GuiInterface.prototype.prodmod_GetTemplatePositions = function(_currentPlayer, args)
+GuiInterface.prototype.prodmod_GetTemplateEntities = function(_currentPlayer, args)
 {
   const [player, templates] = args;
 
@@ -149,11 +209,7 @@ GuiInterface.prototype.prodmod_GetTemplatePositions = function(_currentPlayer, a
     if (rIndex < 0)
       continue;
 
-    const cmpPosition = Engine.QueryInterface(entity, IID_Position);
-    if (!cmpPosition || !cmpPosition.IsInWorld())
-      continue;
-
-    result[templates.indexOf(templateName)] = cmpPosition.GetPosition();
+    result[templates.indexOf(templateName)] = this.GetEntityState(player, entity);
     remainingTemplates.splice(rIndex, 1);
 
     if (remainingTemplates.length == 0)
@@ -165,84 +221,6 @@ GuiInterface.prototype.prodmod_GetTemplatePositions = function(_currentPlayer, a
 
 GuiInterface.prototype.prodmod_GetProductionState = function(ent)
 {
-  let ret = {};
-
-	let cmpOwnership = Engine.QueryInterface(ent, IID_Ownership);
-	if (cmpOwnership) {
-		ret.player = cmpOwnership.GetOwner();
-  } else {
-    return null;
-  }
-
-	let cmpTemplateManager = Engine.QueryInterface(SYSTEM_ENTITY, IID_TemplateManager);
-
-	let cmpFoundation = QueryMiragedInterface(ent, IID_Foundation);
-	if (cmpFoundation) {
-  	if (Engine.QueryInterface(ent, IID_Mirage))
-  		return null;
-
-	  let template = cmpTemplateManager.GetTemplate(cmpTemplateManager.GetCurrentTemplateName(ent));
-	  if (!template || !template.Identity)
-	  	return null;
-
-    ret.template = {
-      "name": template.Identity.GenericName,
-      "icon": template.Identity.Icon
-    };
-
-		ret.foundation = 1;
-
-	  let cmpHealth = QueryMiragedInterface(ent, IID_Health);
-	  if (!cmpHealth)
-      return null;
-
-  	ret.hitpoints = cmpHealth.GetHitpoints();
-  	ret.maxHitpoints = cmpHealth.GetMaxHitpoints();
-    ret.progress = ret.hitpoints / ret.maxHitpoints;
-    ret.timeRemaining = cmpFoundation.GetBuildTime().timeRemaining;
-  } else {
-    let cmpProductionQueue = Engine.QueryInterface(ent, IID_ProductionQueue);
-    if (!cmpProductionQueue)
-      return null;
-
-    const queue = cmpProductionQueue.GetQueue();
-    if (queue.length == 0)
-      return null;
-
-    const batch = queue[0];
-		ret.production = { "count": batch.count };
-    ret.progress = batch.progress;
-    ret.timeRemaining = batch.timeRemaining / 1000.0;
-
-    if (batch.unitTemplate) {
-	    let unitTemplate = cmpTemplateManager.GetTemplate(batch.unitTemplate);
-
-	    if (!unitTemplate || !unitTemplate.Identity)
-	    	return null;
-
-      ret.template = {
-        "name": unitTemplate.Identity.GenericName,
-        "icon": unitTemplate.Identity.Icon
-      };
-      ret.production.kind = "unit";
-
-    } else if (batch.technologyTemplate) {
-      let technologyTemplate = TechnologyTemplates.Get(batch.technologyTemplate);
-
-      if (!technologyTemplate)
-        return null;
-
-      ret.template = {
-        "name": technologyTemplate.genericName,
-        "icon": "technologies/" + technologyTemplate.icon
-      };
-      ret.production.kind = "technology";
-    }
-  }
-
-	let cmpPosition = Engine.QueryInterface(ent, IID_Position);
-	if (cmpPosition && cmpPosition.IsInWorld())
-		ret.position = cmpPosition.GetPosition();
 
   return ret;
 }
@@ -252,7 +230,7 @@ GuiInterface.prototype.prodmod_GetProductionState = function(ent)
 let prodmod_exposedFunctions = {
     "prodmod_GetPlayersProduction": 1,
     "prodmod_GetResearchedTechs": 1,
-    "prodmod_GetTemplatePositions": 1,
+    "prodmod_GetTemplateEntities": 1,
 };
 
 autociv_patchApplyN(GuiInterface.prototype, "ScriptCall", function (target, that, args)

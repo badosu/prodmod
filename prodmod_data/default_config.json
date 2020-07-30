@@ -1,7 +1,10 @@
 {
-	"hotkey.prodmod.toggleVisibility": "Ctrl+Space",
-	"hotkey.prodmod.toggleMode": "Shift+Space",
+	"hotkey.prodmod.toggleShowNames": "Space+Tab",
+	"hotkey.prodmod.toggleVisibility": "Space+Ctrl",
+	"hotkey.prodmod.toggleMode": "Space+Shift",
 	"hotkey.prodmod.quickShowUnits": "Space+q",
 	"hotkey.prodmod.quickShowProduction": "Space+w",
-	"hotkey.prodmod.quickShowTech": "Space+e"
+	"hotkey.prodmod.quickShowTech": "Space+e",
+	"prodmod.enabled": "false",
+	"prodmod.showNames": "true"
 }

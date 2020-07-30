@@ -148,9 +148,9 @@ ProductionMonitor.prototype.TopSingle = 84;
 ProductionMonitor.prototype.Ranks = { 'b': 'Basic', 'a': 'Advanced', 'e': 'Elite' };
 ProductionMonitor.prototype.RankableTechs = [
   ["gather_lumbering_ironaxes", "gather_lumbering_strongeraxes", "gather_lumbering_sharpaxes"],
+  ["gather_farming_plows", "gather_farming_training", "gather_farming_fertilizer"],
   ["gather_mining_servants", "gather_mining_serfs", "gather_mining_slaves"],
   ["gather_mining_wedgemallet", "gather_mining_shaftmining", "gather_mining_silvermining"],
-  ["gather_farming_plows", "gather_farming_training", "gather_farming_fertilizer"],
   ["gather_capacity_basket", "gather_capacity_wheelbarrow", "gather_capacity_carts"],
   ["attack_infantry_melee_01", "attack_infantry_melee_02"],
   ["attack_infantry_ranged_01", "attack_infantry_ranged_02"],

@@ -58,8 +58,10 @@ GuiInterface.prototype.prodmod_GetResearchedTechs = function(_currentPlayer, pla
       result.push({
         "template": {
           "name": technologyTemplate.genericName,
-          "icon": "technologies/" + technologyTemplate.icon
-        }
+          "icon": "technologies/" + technologyTemplate.icon,
+          "template": tech,
+        },
+        "description": technologyTemplate.tooltip
       });
     }
 
@@ -73,8 +75,10 @@ GuiInterface.prototype.prodmod_GetResearchedTechs = function(_currentPlayer, pla
       let ret = {
         "template": {
           "name": technologyTemplate.genericName,
-          "icon": "technologies/" + technologyTemplate.icon
-        }
+          "icon": "technologies/" + technologyTemplate.icon,
+          "template": tech
+        },
+        "description": technologyTemplate.tooltip
       };
 
 	  	ret.researcher = cmpTechnologyManager.GetResearcher(tech);

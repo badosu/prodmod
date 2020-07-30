@@ -1,42 +1,42 @@
 "use strict";
 
-let g_prodmod_ProductionMonitor;
+let g_prodmod_Monitor;
 
 const g_prodmod_hotkeys = {
 	"prodmod.toggleVisibility": function (ev) {
     if (ev.type == "hotkeydown")
-      g_prodmod_ProductionMonitor.toggleVisibility();
+      g_prodmod_Monitor.toggleVisibility();
 		return true;
 	},
 	"prodmod.toggleMode": function (ev) {
     if (ev.type == "hotkeydown")
-      g_prodmod_ProductionMonitor.onModeToggle();
+      g_prodmod_Monitor.onModeToggle();
 		return true;
 	},
 	"prodmod.quickShowUnits": function (ev) {
     if (ev.type == "hotkeydown") {
-      g_prodmod_ProductionMonitor.show(0);
-      g_prodmod_ProductionMonitor.update(true);
+      g_prodmod_Monitor.show(0);
+      g_prodmod_Monitor.update(true);
     } else {
-      g_prodmod_ProductionMonitor.hide();
+      g_prodmod_Monitor.hide();
     }
 		return true;
 	},
 	"prodmod.quickShowProduction": function (ev) {
     if (ev.type == "hotkeydown") {
-      g_prodmod_ProductionMonitor.show(1);
-      g_prodmod_ProductionMonitor.update(true);
+      g_prodmod_Monitor.show(1);
+      g_prodmod_Monitor.update(true);
     } else {
-      g_prodmod_ProductionMonitor.hide();
+      g_prodmod_Monitor.hide();
     }
 		return true;
 	},
 	"prodmod.quickShowTech": function (ev) {
     if (ev.type == "hotkeydown") {
-      g_prodmod_ProductionMonitor.show(2);
-      g_prodmod_ProductionMonitor.update(true);
+      g_prodmod_Monitor.show(2);
+      g_prodmod_Monitor.update(true);
     } else {
-      g_prodmod_ProductionMonitor.hide();
+      g_prodmod_Monitor.hide();
     }
 		return true;
 	},
@@ -45,7 +45,7 @@ const g_prodmod_hotkeys = {
 function prodmod_init() {
   const enabled = Engine.ConfigDB_GetValue("user", "prodmod.enabled") == "true";
 
-  g_prodmod_ProductionMonitor = new ProductionMonitor(g_ViewedPlayer, enabled);
+  g_prodmod_Monitor = new Monitor(g_ViewedPlayer, enabled);
 }
 
 // TODO: Use a24 registerPlayersInitHandler
@@ -61,7 +61,7 @@ autociv_patchApplyN("init", function(target, that, args) {
 autociv_patchApplyN("onTick", function(target, that, args) {
 	const result = target.apply(that, args);
 
-  g_prodmod_ProductionMonitor.update();
+  g_prodmod_Monitor.update();
 
   return result;
 });

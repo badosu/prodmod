@@ -38,7 +38,7 @@ function autociv_patchApplyN()
 
 GuiInterface.prototype.prodmod_GetResearchedTechs = function(_currentPlayer, players)
 {
-  const internalTechs = ["pair", "bonus", "phase", "wooden_walls", "civpenalty"];
+  const internalTechs = ["pair", "bonus", "wooden_walls", "civpenalty"];
 
   let ret = {};
 	for (let playerId of players) {

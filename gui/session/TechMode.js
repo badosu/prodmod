@@ -5,6 +5,7 @@ function TechMode() {
 TechMode.prototype = Object.create(Mode.prototype);
 
 TechMode.prototype.RankableTechs = [
+  ["phase_village", "phase_town", "phase_town_athen", "phase_town_generic", "phase_city", "phase_city_athen", "phase_city_generic"],
   ["gather_lumbering_ironaxes", "gather_lumbering_strongeraxes", "gather_lumbering_sharpaxes"],
   ["gather_farming_plows", "gather_farming_training", "gather_farming_fertilizer"],
   ["gather_mining_servants", "gather_mining_serfs", "gather_mining_slaves"],
@@ -62,7 +63,7 @@ TechMode.prototype.getQueues = function(players, _simulationState) {
         continue;
 
       let lastTech = techGroup[ranks - 1];
-      if (ranks > 1) {
+      if (ranks > 1 && !lastTech.template.template.startsWith('phase_')) {
         lastTech.rank = Monitor.prototype.Ranks[rankKeys[ranks - 1]];
         lastTech.template.icon = techGroup[0].template.icon;
         lastTech.hideRankInfo = true;

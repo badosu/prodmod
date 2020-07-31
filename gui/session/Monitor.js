@@ -102,7 +102,7 @@ Monitor.prototype.updateRows = function(queues) {
     if (queueLength > maxItems)
       maxItems = queueLength;
 
-    this.rows[playerId].update(queues[playerId], this.showNames ? playerStates[playerId] : null);
+    this.rows[playerId].update(queues[playerId], playerStates[playerId], this.showNames);
   }
 
   let size = this.container.size;

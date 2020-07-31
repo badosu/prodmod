@@ -153,7 +153,6 @@ GuiInterface.prototype.prodmod_GetPlayersProduction = function(_currentPlayer, p
         continue;
 
       const batch = queue[0];
-	  	ret.count = batch.count;
       ret.progress = batch.progress;
       ret.timeRemaining = batch.timeRemaining / 1000.0;
 
@@ -163,6 +162,7 @@ GuiInterface.prototype.prodmod_GetPlayersProduction = function(_currentPlayer, p
 	      if (!unitTemplate || !unitTemplate.Identity)
 	      	continue;
 
+	  	  ret.count = batch.count;
         ret.templateName = batch.unitTemplate;
         ret.name = unitTemplate.Identity.GenericName;
         ret.icon = unitTemplate.Identity.Icon;
@@ -217,12 +217,6 @@ GuiInterface.prototype.prodmod_GetTemplateEntities = function(_currentPlayer, ar
   }
 
   return result;
-}
-
-GuiInterface.prototype.prodmod_GetProductionState = function(ent)
-{
-
-  return ret;
 }
 
 // Adding a new key to the exposedFunctions object doesn't work,

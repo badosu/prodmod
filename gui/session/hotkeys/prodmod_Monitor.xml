@@ -6,8 +6,8 @@
   </object>
   <repeat count="8" var="i">
     <object name="MonitorRow[i]" type="text" size="0 0 100% 40" hidden="true">
-      <object name="MonitorRow[i]Ind" type="button" tooltip_style="sessionToolTipBottom" size="0 2 6 32" />
-      <object name="MonitorRow[i]Label" type="text" tooltip_style="sessionToolTipBottom" size="8 2 58 32" sprite="FloatingLabel" textcolor="white" text_align="center" text_valign="center" font="sans-stroke-12" hidden="true"/>
+      <object name="MonitorRow[i]Ind" type="text" tooltip_style="sessionToolTip" size="0 2 6 32" />
+      <object name="MonitorRow[i]Label" type="text" tooltip_style="sessionToolTip" size="8 2 58 32" sprite="FloatingLabel" textcolor="white" text_align="center" text_valign="center" font="sans-stroke-12" hidden="true"/>
 
       <repeat count="20" var="j">
         <object name="MonitorRow[i]Item[j]Btn" size="0 0 34 37" type="button" tooltip_style="sessionToolTip" style="iconButton" hidden="true">

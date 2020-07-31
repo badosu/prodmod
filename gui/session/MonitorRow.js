@@ -2,6 +2,7 @@ function MonitorRow(rowIndex, playerState, displayLabel) {
   let row = Engine.GetGUIObjectByName(`MonitorRow[${rowIndex}]`);
   let ind = Engine.GetGUIObjectByName(`MonitorRow[${rowIndex}]Ind`);
   this.label = Engine.GetGUIObjectByName(`MonitorRow[${rowIndex}]Label`);
+  this.resourcesGathered = [[Date.now(), playerState.statistics.resourcesGathered]];
   let sizeTop = rowIndex * (this.Height + this.VerticalGap) + this.MarginTop;
   if (displayLabel)
     sizeTop += Monitor.prototype.TitleHeight;
@@ -22,8 +23,31 @@ function MonitorRow(rowIndex, playerState, displayLabel) {
     this.items.push(new MonitorItem(rowIndex, i, color));
 }
 
-MonitorRow.prototype.update = function(entities, label) {
-  if (label) {
+MonitorRow.prototype.update = function(entities, playerState) {
+  let label;
+  if (playerState) {
+    label = playerState.name.split(' ')[0].slice(0, 8);
+    label += `${label.length < 5 ? "\n" : " "}${playerState.popCount}/${playerState.popLimit}`;
+
+    let tooltip = '';
+
+    const now = Date.now();
+    const [then, gatheredThen] = this.resourcesGathered.length > 10 ? this.resourcesGathered.shift() : this.resourcesGathered[0];
+    const deltaS = (now - then) / 1000;
+    let gatheredNow = playerState.statistics.resourcesGathered;
+    delete gatheredNow.vegetarianFood;
+    for (let resType in gatheredNow) {
+      const resGatheredNow = gatheredNow[resType];
+      const rate = ((resGatheredNow - gatheredThen[resType]) / deltaS).toFixed(1);
+      const count = playerState.resourceCounts[resType];
+      const rateS = setStringTags(`${rate}/s`, { color: 'green' });
+
+      tooltip += `${resourceIcon(resType)} ${count}+${rateS}\n`;
+    }
+
+    this.resourcesGathered.push([now, gatheredNow]);
+
+    this.label.tooltip = tooltip;
     this.label.caption = label;
     this.label.hidden = false;
   } else {

@@ -102,14 +102,7 @@ Monitor.prototype.updateRows = function(queues) {
     if (queueLength > maxItems)
       maxItems = queueLength;
 
-    const playerState = playerStates[playerId];
-    let label = null;
-    if (this.showNames) {
-      label = playerState.name.split(' ')[0].slice(0, 8);
-      label += `${label.length < 5 ? "\n" : " "}${playerState.popCount}/${playerState.popLimit}`;
-    }
-
-    this.rows[playerId].update(queues[playerId], label);
+    this.rows[playerId].update(queues[playerId], this.showNames ? playerStates[playerId] : null);
   }
 
   let size = this.container.size;

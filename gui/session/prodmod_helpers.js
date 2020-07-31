@@ -54,6 +54,10 @@ function unitNameWithRank(name, rank) {
   return ret + name;
 }
 
+function fontColor(text, color) {
+  return setStringTags(text.toString(), { "color": color });
+}
+
 function pp(str) {
   if (typeof str === 'undefined') {
     str = 'undefined';

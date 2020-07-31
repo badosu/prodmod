@@ -20,7 +20,7 @@ function Monitor(viewedPlayer, active = true, showNames = true, mode = 0, modes 
   this.reset();
 }
 
-Monitor.prototype.reset = function(simulationState = Engine.GuiInterfaceCall('GetSimulationState')) {
+Monitor.prototype.reset = function(simulationState = Engine.GuiInterfaceCall('GetExtendedSimulationState')) {
   this.simulationState = simulationState;
 
   const playerStates = simulationState.players;
@@ -71,7 +71,7 @@ Monitor.prototype.update = function(forceRender = false) {
   if (!this.active || (Engine.IsPaused() || (!forceRender && this.tooEarly())))
     return;
 
-  this.simulationState = Engine.GuiInterfaceCall('GetSimulationState')
+  this.simulationState = Engine.GuiInterfaceCall('GetExtendedSimulationState')
   const playerStates = this.simulationState.players;
 
   // Reset Monitor when a player is not active anymore

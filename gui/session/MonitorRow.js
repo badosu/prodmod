@@ -1,6 +1,6 @@
 function MonitorRow(rowIndex, playerState, displayLabel) {
   let row = Engine.GetGUIObjectByName(`MonitorRow[${rowIndex}]`);
-  let ind = Engine.GetGUIObjectByName(`MonitorRow[${rowIndex}]Ind`);
+  this.ind = Engine.GetGUIObjectByName(`MonitorRow[${rowIndex}]Ind`);
   this.label = Engine.GetGUIObjectByName(`MonitorRow[${rowIndex}]Label`);
   this.resourcesGathered = [[Date.now(), playerState.statistics.resourcesGathered]];
   let sizeTop = rowIndex * (this.Height + this.VerticalGap) + this.MarginTop;
@@ -12,9 +12,7 @@ function MonitorRow(rowIndex, playerState, displayLabel) {
   const color = playerState.color;
   const colorSprite = `color: ${color.r * 255} ${color.g * 255} ${color.b * 255} 255`;
 
-  ind.sprite = colorSprite;
-  const civName = g_CivData[playerState.civ].Name;
-  ind.tooltip = `${playerState.name} - ${civName}`;
+  this.ind.sprite = colorSprite;
 
   this.items = [];
   this.row = row;
@@ -27,9 +25,14 @@ MonitorRow.prototype.update = function(entities, playerState) {
   let label;
   if (playerState) {
     label = playerState.name.split(' ')[0].slice(0, 8);
-    label += `${label.length < 5 ? "\n" : " "}${playerState.popCount}/${playerState.popLimit}`;
+    const pops = `${playerState.popCount}/${playerState.popLimit}`;
+    label += `${label.length < 5 ? "\n" : " "}${pops}`;
 
-    let tooltip = '';
+    const civName = g_CivData[playerState.civ].Name;
+    const sequences = playerState.sequences;
+    const lastIndex = sequences.time.length - 1;
+    let tooltip = `${headerFont(playerState.name)} - ${civName}\n\n`;
+    tooltip += `${headerFont("Economy")}          ${resourceIcon('population')} ${pops}\n`;
 
     const now = Date.now();
     const [then, gatheredThen] = this.resourcesGathered.length > 10 ? this.resourcesGathered.shift() : this.resourcesGathered[0];
@@ -40,14 +43,39 @@ MonitorRow.prototype.update = function(entities, playerState) {
       const resGatheredNow = gatheredNow[resType];
       const rate = ((resGatheredNow - gatheredThen[resType]) / deltaS).toFixed(1);
       const count = playerState.resourceCounts[resType];
-      const rateS = setStringTags(`${rate}/s`, { color: 'green' });
 
-      tooltip += `${resourceIcon(resType)} ${count}+${rateS}\n`;
+      tooltip += `${resourceIcon(resType)} ${count}+${fontColor(`${rate}/s`, 'green')}\n`;
     }
+    const tradeIncome = sequences.tradeIncome[lastIndex];
+    if (tradeIncome && tradeIncome > 0)
+      tooltip += `Trade Income: ${tradeIncome}\n`
+    const tributesSent = sequences.tributesSent[lastIndex];
+    if (tributesSent && tributesSent > 0)
+      tooltip += `Sent: ${fontColor(tributesSent, 'red')}\n`
+    const tributesReceived = sequences.tributesReceived[lastIndex];
+    if (tributesReceived && tributesReceived > 0)
+      tooltip += `Received: ${tfontColor(tributesReceived, 'green')}\n`
+
+    tooltip += `\n${headerFont("Military")}\n`;
+    const unitsLost = sequences.unitsLost.total[lastIndex];
+    const unitsLostValue = sequences.unitsLostValue[lastIndex];
+    const buildingsLostValue = sequences.buildingsLostValue[lastIndex];
+    const enemyUnitsKilled = sequences.enemyUnitsKilled.total[lastIndex];
+    const enemyUnitsKilledValue = sequences.enemyUnitsKilledValue[lastIndex];
+    const enemyBuildingsDestroyedValue = sequences.enemyBuildingsDestroyedValue[lastIndex];
+    const buildingsCapturedValue = sequences.buildingsCapturedValue[lastIndex];
+    const unitsCapturedValue = sequences.unitsCapturedValue[lastIndex];
+    const loot = sequences.lootCollected[lastIndex];
+    const kd = enemyUnitsKilled ? +((enemyUnitsKilled / unitsLost).toFixed(1)) : 0;
+    tooltip += `K/D: ${fontColor(enemyUnitsKilled, 'green')} ${(unitFont("("+enemyUnitsKilledValue+")"))} / ${fontColor(unitsLost, 'red')} ${(unitFont("("+unitsLostValue+")"))} (${kd})\n`;
+    tooltip += `Loot: ${fontColor(loot, 'green')}\n`;
+    tooltip += `Res. Killed: ${fontColor(enemyUnitsKilledValue + enemyBuildingsDestroyedValue + unitsCapturedValue + buildingsCapturedValue, 'green')}\n`;
+    tooltip += `Res. Lost: ${fontColor(buildingsLostValue + unitsLostValue, 'red')}\n`;
 
     this.resourcesGathered.push([now, gatheredNow]);
 
     this.label.tooltip = tooltip;
+    this.ind.tooltip = tooltip;
     this.label.caption = label;
     this.label.hidden = false;
   } else {

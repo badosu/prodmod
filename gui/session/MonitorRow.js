@@ -29,7 +29,7 @@ MonitorRow.prototype.update = function(entities, playerState, displayLabel) {
   const lastIndex = sequences.time.length - 1;
 
   let tooltip = `${headerFont(playerState.name)} - ${civName}\n\n`;
-  tooltip += `${headerFont("Economy")}          ${resourceIcon('population')} ${pops}\n`;
+  tooltip += `Economy - ${resourceIcon('population')} ${pops}\n`;
 
   const now = Date.now();
   const [then, gatheredThen] = this.resourcesGathered.length > 10 ? this.resourcesGathered.shift() : this.resourcesGathered[0];
@@ -45,17 +45,7 @@ MonitorRow.prototype.update = function(entities, playerState, displayLabel) {
     tooltip += `${resourceIcon(resType)} ${count}+${fontColor(`${rate}/s`, 'green')}\n`;
   }
 
-  const tradeIncome = sequences.tradeIncome[lastIndex];
-  if (tradeIncome && tradeIncome > 0)
-    tooltip += `Trade Income: ${tradeIncome}\n`
-  const tributesSent = sequences.tributesSent[lastIndex];
-  if (tributesSent && tributesSent > 0)
-    tooltip += `Sent: ${fontColor(tributesSent, 'red')}\n`
-  const tributesReceived = sequences.tributesReceived[lastIndex];
-  if (tributesReceived && tributesReceived > 0)
-    tooltip += `Received: ${tfontColor(tributesReceived, 'green')}\n`
-
-  tooltip += `\n${headerFont("Military")}\n`;
+  tooltip += `\nMilitary - ${playerState.classCounts.Soldier}\n`;
   const unitsLost = sequences.unitsLost.total[lastIndex];
   const unitsLostValue = sequences.unitsLostValue[lastIndex];
   const buildingsLostValue = sequences.buildingsLostValue[lastIndex];
@@ -65,11 +55,30 @@ MonitorRow.prototype.update = function(entities, playerState, displayLabel) {
   const buildingsCapturedValue = sequences.buildingsCapturedValue[lastIndex];
   const unitsCapturedValue = sequences.unitsCapturedValue[lastIndex];
   const loot = sequences.lootCollected[lastIndex];
-  const kd = enemyUnitsKilled ? +((enemyUnitsKilled / unitsLost).toFixed(1)) : 0;
-  tooltip += `K/D: ${fontColor(enemyUnitsKilled, 'green')} ${(unitFont("("+enemyUnitsKilledValue+")"))} / ${fontColor(unitsLost, 'red')} ${(unitFont("("+unitsLostValue+")"))} (${kd})\n`;
+  const kd = enemyUnitsKilled ? + ((enemyUnitsKilled / unitsLost).toFixed(2)) : 0;
+  tooltip += `K/D: ${fontColor(enemyUnitsKilled, 'green')} ${(unitFont("("+enemyUnitsKilledValue+")"))} / ${fontColor(unitsLost, 'red')} ${(unitFont("("+unitsLostValue+")"))} - ${kd}\n`;
   tooltip += `Loot: ${fontColor(loot, 'green')}\n`;
   tooltip += `Res. Killed: ${fontColor(enemyUnitsKilledValue + enemyBuildingsDestroyedValue + unitsCapturedValue + buildingsCapturedValue, 'green')}\n`;
   tooltip += `Res. Lost: ${fontColor(buildingsLostValue + unitsLostValue, 'red')}\n`;
+
+	let totalBought = 0;
+	let totalSold = 0;
+	for (let type in sequences.resourcesBought)
+		totalBought += sequences.resourcesBought[type][lastIndex];
+	for (let type in sequences.resourcesSold)
+		totalSold += sequences.resourcesSold[type][lastIndex];
+
+  if (totalSold)
+    tooltip += `\nBarter ef.: ${Math.floor(100 * totalBought / totalSold)}%`
+  const tradeIncome = sequences.tradeIncome[lastIndex];
+  if (tradeIncome)
+    tooltip += `\nTrade Income: ${tradeIncome}`
+  const tributesSent = sequences.tributesSent[lastIndex];
+  if (tributesSent)
+    tooltip += `\nRes. Sent: ${fontColor(tributesSent, 'red')}`
+  const tributesReceived = sequences.tributesReceived[lastIndex];
+  if (tributesReceived)
+    tooltip += `\nRes. Received: ${fontColor(tributesReceived, 'green')}\n`
 
   this.resourcesGathered.push([now, gatheredNow]);
 

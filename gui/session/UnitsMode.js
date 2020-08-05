@@ -66,9 +66,7 @@ UnitsMode.prototype.getQueues = function(players, simulationState) {
       if (rank)
         item['rank'] = rank;
 
-      let playerName = headerFont(playerState.name.split(' ')[0]);
-
-      let tooltip = `${playerName} - ${unitNameWithRank(template.name.generic, rank)}\n`;
+      let tooltip = `${formattedPlayerName(playerState)} - ${unitNameWithRank(template.name.generic, rank)}\n`;
       tooltip += [
         getAttackTooltip,
         getSplashDamageTooltip,

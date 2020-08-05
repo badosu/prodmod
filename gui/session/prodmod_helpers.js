@@ -1,4 +1,23 @@
-function brightenedSprite(color) {
+function darkenedSprite(color, factor = 0.25) {
+  return `color: ${darkenedColor(color, factor)} 255`;
+}
+
+function darkenedColor(color, factor = 0.25) {
+  let r = color.r * 255;
+  let g = color.g * 255;
+  let b = color.b * 255;
+
+  if (r + g + b < 150)
+    factor = 0;
+
+  r *= 1 - factor;
+  g *= 1 - factor;
+  b *= 1 - factor;
+
+  return `${Math.round(r)} ${Math.round(g)} ${Math.round(b)}`;
+}
+
+function brightenedColor(color) {
   const threshold = 255.999;
 
   let amount = 0;
@@ -9,8 +28,8 @@ function brightenedSprite(color) {
 
   if (m < 150) {
     amount = 100;
-  } else if (m < 170) {
-    amount = 40;
+  } else if (m < 170 || b == 200) { //red purple
+    amount = 70;
   }
 
   r += amount;
@@ -31,11 +50,15 @@ function brightenedSprite(color) {
     }
   }
 
-  return `color: ${Math.floor(r)} ${Math.floor(g)} ${Math.floor(b)} 255`;
+  return `${Math.floor(r)} ${Math.floor(g)} ${Math.floor(b)}`;
+}
+
+function brightenedSprite(color) {
+  return `color: ${brightenedColor(color)} 255`;
 }
 
 function templateTooltip(playerName, template) {
-  let tooltip = headerFont(playerName.split(' ')[0]) + ' - ' + template.name;
+  let tooltip = headerFont(playerName) + ' - ' + template.name;
 
   if (template.timeRemaining && (!template.foundation || template.timeRemaining > 0))
     tooltip += `: ${Math.ceil(template.timeRemaining)}s`
@@ -52,6 +75,10 @@ function unitNameWithRank(name, rank) {
     ret += translateWithContext("Rank", rank) + " ";
 
   return ret + name;
+}
+
+function formattedPlayerName(playerState) {
+  return setStringTags(headerFont(playerState.name), { "color": brightenedColor(playerState.color) });
 }
 
 function fontColor(text, color) {

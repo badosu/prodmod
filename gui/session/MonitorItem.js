@@ -11,11 +11,11 @@ function MonitorItem(rowIndex, itemIndex, color) {
 }
 
 MonitorItem.prototype.calculateSize = function(leftMargin) {
-  let buttonLeft = leftMargin + this.LeftMargin + (this.ButtonWidth + this.HorizontalGap) * this.itemIndex;
+  let buttonLeft = leftMargin + (this.ButtonWidth + this.HorizontalGap) * this.itemIndex;
   let size = this.btn.size;
   size.left = buttonLeft;
   size.right = buttonLeft + this.ButtonWidth;
-
+  size.top = this.item.progress ? 0 : 1;
   return size;
 }
 
@@ -67,7 +67,6 @@ MonitorItem.prototype.hide = function() {
   this.progress.hidden = true;
 }
 
-MonitorItem.prototype.LeftMargin = 8;
 MonitorItem.prototype.HorizontalGap = 2;
 MonitorItem.prototype.ButtonWidth = 34;
 MonitorItem.prototype.BorderWidth = 3;

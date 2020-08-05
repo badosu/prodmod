@@ -1,5 +1,7 @@
 function Monitor(viewedPlayer, active = true, showNames = true, mode = 0, modes = [UnitsMode, ProductionMode, TechMode]) {
   this.container = Engine.GetGUIObjectByName('Monitor');
+  //this.perf = Engine.GetGUIObjectByName('MonitorPerf');
+  //this.perf.hidden = false;
   this.title = Engine.GetGUIObjectByName('MonitorTitle');
   this.titleContainer = Engine.GetGUIObjectByName('MonitorTitleContainer');
   this.showNames = showNames;
@@ -43,7 +45,10 @@ Monitor.prototype.reset = function(simulationState = Engine.GuiInterfaceCall('Ge
   this.rows = {};
   for (let i = 0; i < this.players.length; i++) {
     const playerId = this.players[i];
-    this.rows[playerId] = new MonitorRow(i, playerStates[playerId], isObserver);
+    const playerState = playerStates[playerId];
+    if (this.players.length <= 2)
+      playerStates[playerId].hideTeam = true;
+    this.rows[playerId] = new MonitorRow(i, playerState, isObserver);
   }
 
   if (this.active)
@@ -71,8 +76,14 @@ Monitor.prototype.update = function(forceRender = false) {
   if (!this.active || (Engine.IsPaused() || (!forceRender && this.tooEarly())))
     return;
 
+  //const startTime = Engine.GetMicroseconds();
+
   this.simulationState = Engine.GuiInterfaceCall('GetExtendedSimulationState')
   const playerStates = this.simulationState.players;
+
+  // Strip rank/nick
+  for (let playerId in playerStates)
+    playerStates[playerId].name = playerStates[playerId].name.split(' ')[0];
 
   // Reset Monitor when a player is not active anymore
   // TODO: Use a24 registerPlayersFinishedHandler
@@ -88,6 +99,8 @@ Monitor.prototype.update = function(forceRender = false) {
   const queues = this.modes[this.mode].getQueues(this.players, this.simulationState);
 
   this.updateRows(queues);
+
+  //this.perf.caption = `${((Engine.GetMicroseconds() - startTime) / 1000).toFixed(1)}ms`;
 }
 
 Monitor.prototype.updateRows = function(queues) {
@@ -102,12 +115,15 @@ Monitor.prototype.updateRows = function(queues) {
     if (queueLength > maxItems)
       maxItems = queueLength;
 
-    this.rows[playerId].update(queues[playerId], playerStates[playerId], this.showNames);
+    let playerState = playerStates[playerId];
+    playerState.id = playerId;
+
+    this.rows[playerId].update(queues[playerId], playerState, this.showNames);
   }
 
   let size = this.container.size;
-  size.right = MonitorItem.prototype.LeftMargin + MonitorItem.prototype.ButtonWidth +
-    (MonitorItem.prototype.ButtonWidth + MonitorItem.prototype.HorizontalGap) * Math.max(maxItems - 1, 0);
+  let rightmostItem = this.rows[Object.keys(this.rows)[0]].items[Math.max(maxItems - 1, 0)].btn.size;
+  size.right = maxItems > 0 ? rightmostItem.right : rightmostItem.left;
   this.container.size = size;
 }
 

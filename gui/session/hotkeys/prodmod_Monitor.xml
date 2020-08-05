@@ -1,24 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <object type="text" name="Monitor" size="8 0 46 428" textcolor="white" hidden="true">
+  <!-- object type="text" name="MonitorPerf" size="124 0 184 20" textcolor="white" sprite="FloatingLabel" hidden="true" / -->
   <object name="MonitorTitleContainer" size="12 0 108 20" type="button" sprite="FloatingLabel" sprite_over="FloatingLabelOver" tooltip_style="sessionToolTipBottom" sound_pressed="audio/interface/ui/ui_button_click.ogg" hidden="true">
     <object name="MonitorTitle" type="text" text_align="center" text_valign="center" textcolor="white" font="sans-bold-14" ghost="true" />
   </object>
   <repeat count="8" var="i">
     <object name="MonitorRow[i]" type="text" size="0 0 100% 40" hidden="true">
-      <object name="MonitorRow[i]Ind" type="text" tooltip_style="sessionToolTip" size="0 2 6 32" />
-      <object name="MonitorRow[i]Label" type="text" tooltip_style="sessionToolTip" size="8 2 58 32" sprite="FloatingLabel" textcolor="white" text_align="center" text_valign="center" font="sans-stroke-12" hidden="true"/>
+      <object name="MonitorRow[i]Ind" type="button" tooltip_style="sessionToolTip" size="0 2 32 34">
+        <object name="MonitorRow[i]IndIcon" size="0 0 32 32" type="image" ghost="true" />
+        <object name="MonitorRow[i]IndTeam" size="0 0 29 30" type="text" ghost="true" font="sans-bold-stroke-12" textcolor="white" text_align="right" text_valign="bottom"/>
+      </object>
+      <object name="MonitorRow[i]Label" type="button" tooltip_style="sessionToolTip" size="35 2 93 34" sprite="FloatingLabel" textcolor="white" text_align="center" text_valign="center" font="sans-stroke-12" hidden="true"/>
 
       <repeat count="20" var="j">
         <object name="MonitorRow[i]Item[j]Btn" size="0 0 34 37" type="button" tooltip_style="sessionToolTip" style="iconButton" hidden="true">
           <object name="MonitorRow[i]Item[j]Icon" size="3 3 31 31" type="image" ghost="true"/>
           <object name="MonitorRow[i]Item[j]Count" size="3 3 28 34" type="text" ghost="true" buffer_zone="5" font="sans-bold-stroke-14" textcolor="white" text_align="right" text_valign="bottom"/>
-          <object name="MonitorRow[i]Item[j]Prg" sprite="BgBlueDark" size="3 31 3 33" type="image" />
+          <object name="MonitorRow[i]Item[j]Prg" size="3 31 3 33" type="image" />
           <object z="20" size="3 4 13 14" name="MonitorRow[i]Item[j]Rank" type="image" ghost="true" />
         </object>
       </repeat>
     </object>
   </repeat>
 </object>
-
-

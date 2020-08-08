@@ -40,12 +40,7 @@ MonitorItem.prototype.update = function(item, leftMargin = 0) {
 
   this.btn.tooltip = tooltip;
   this.btn.hidden = false;
-
-  if (item.count) {
-    this.cnt.caption = item.count;
-  } else {
-    this.cnt.caption = "";
-  }
+  this.cnt.caption = item.count && item.count > 1 ? item.count : "";
 
   if (item.rank && item.rank !== "Basic") {
     this.rank.sprite = this.RankDirectory + item.rank + ".png";

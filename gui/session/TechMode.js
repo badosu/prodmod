@@ -29,8 +29,6 @@ TechMode.prototype.getQueues = function(players, simulationState) {
   const rankableTechsSize = this.RankableTechs.length;
 
   for (let playerId in techs) {
-    const playerName = simulationState.players[playerId].name;
-
     let extractedTechGroups = new Array(rankableTechsSize).fill(null).map(() => []);
     let playerTechs = techs[playerId];
     let newPlayerTechs = [];
@@ -38,7 +36,7 @@ TechMode.prototype.getQueues = function(players, simulationState) {
 
     // for each tech
     for (let playerTech of playerTechs) {
-      playerTech.tooltip = templateTooltip(playerName, playerTech);
+      playerTech.tooltip = templateTooltip(simulationState.players[playerId], playerTech);
 
       for (let i = 0; i < rankableTechsSize; i++) {
         let rankableTechGroup = this.RankableTechs[i];

@@ -25,7 +25,7 @@ function MonitorRow(rowIndex, playerState, displayLabel) {
     this.items.push(new MonitorItem(rowIndex, i, color));
 }
 
-MonitorRow.prototype.update = function(entities, playerState, displayLabel) {
+MonitorRow.prototype.update = function(entities, playerState, displayLabel, maxPop) {
   const ccTemplate = Object.keys(playerState.typeCountsByClass.CivCentre || {})[0];
   if (ccTemplate) {
     const ccEntity = Engine.GuiInterfaceCall('prodmod_GetTemplateEntities', [playerState.id, [ccTemplate]])[0];
@@ -105,7 +105,8 @@ MonitorRow.prototype.update = function(entities, playerState, displayLabel) {
       playerState.name.slice(0, 8),
       { "font": "mono-stroke-10", "color": brightenedColor(playerState.color) }
     );
-    label += `\n${playerState.popCount}/${playerState.popLimit}`;
+    const popCount = playerState.popCount == maxPop ? headerFont(playerState.popCount) : playerState.popCount;
+    label += `\n${popCount}/${playerState.popLimit}`;
 
     this.label.tooltip = tooltip;
     this.label.caption = label;
@@ -137,6 +138,6 @@ MonitorRow.prototype.LabelWidth = 58;
 MonitorRow.prototype.ItemCount = 20;
 MonitorRow.prototype.Height = MonitorItem.prototype.ButtonWidth + MonitorItem.prototype.ProgressBarHeight;
 MonitorRow.prototype.VerticalGap = 0;
-MonitorRow.prototype.MarginTop = 6;
+MonitorRow.prototype.MarginTop = 2;
 MonitorRow.prototype.IncomeRateBufferSize = 25;
 MonitorRow.prototype.Phases = { 'village': 'I', 'town': 'II', 'city': 'III' };

@@ -57,8 +57,8 @@ function brightenedSprite(color) {
   return `color: ${brightenedColor(color)} 255`;
 }
 
-function templateTooltip(playerName, template) {
-  let tooltip = headerFont(playerName) + ' - ' + template.name;
+function templateTooltip(playerState, template) {
+  let tooltip = formattedPlayerName(playerState) + ' - ' + template.name;
 
   if (template.timeRemaining && (!template.foundation || template.timeRemaining > 0))
     tooltip += `: ${Math.ceil(template.timeRemaining)}s`
@@ -78,7 +78,7 @@ function unitNameWithRank(name, rank) {
 }
 
 function formattedPlayerName(playerState) {
-  return setStringTags(headerFont(playerState.name), { "color": brightenedColor(playerState.color) });
+  return setStringTags(playerState.name, { "font": "sans-bold-13", "color": brightenedColor(playerState.color) });
 }
 
 function fontColor(text, color) {

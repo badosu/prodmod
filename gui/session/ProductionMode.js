@@ -8,50 +8,42 @@ ProductionMode.prototype.getQueues = function(players, simulationState) {
   const playerStates = simulationState.players;
 
   let queues = {};
-  for (let playerId of players) {
+  for (let playerId of players)
     queues[playerId] = [];
-  }
 
   const playerQuery = players.length === 1 ? players[0] : -1;
   const entityStates = Engine.GuiInterfaceCall("prodmod_GetPlayersProduction", playerQuery);
-  let foundationCounts = {};
+  let entityCounts = {};
 
+  // Group entities with same template
   for (let entityState of entityStates) {
     // Sanity check, in some rare occasions this might happen
     if (!queues[entityState.player])
       continue;
 
-    entityState.tooltip = templateTooltip(playerStates[entityState.player].name, entityState);
+    entityState.tooltip = templateTooltip(playerStates[entityState.player], entityState);
 
-    // Push non foundation entities to queue
-    if (!entityState.foundation) {
-      queues[entityState.player].push(entityState);
-
-      continue;
-    }
-
-    // Group buildings into single item
     const key = entityState.player.toString() + entityState.templateName;
-    const entry = foundationCounts[key];
 
-    if (!entry) {
-      foundationCounts[key] = [1, entityState];
+    if (!entityCounts[key]) {
+      entityCounts[key] = entityState;
+      entityCounts[key].count = entityState.count || 1;
     } else {
-      foundationCounts[key][0]++;
-      const foundationProgress = foundationCounts[key][1].progress;
-      const entityProgress = entityState.progress;
-      if (!foundationProgress || (entityProgress && foundationProgress < entityProgress))
-        foundationCounts[key][1] = entityState;
+      const cachedProgress = entityCounts[key].progress;
+      if (!cachedProgress || (entityState.progress && cachedProgress < entityState.progress)) {
+        entityState.count = entityCounts[key].count + (entityState.count || 1);
+        entityCounts[key] = entityState;
+      } else {
+        entityCounts[key].count += (entityState.count || 1);
+      }
     }
   }
 
-  for (let key in foundationCounts) {
-    const [count, foundationState] = foundationCounts[key];
-    if (count > 1)
-      foundationState.count = count;
+  for (let key in entityCounts) {
+    const entityState = entityCounts[key];
 
-    foundationState.playerName = playerStates[foundationState.player].name;
-    queues[foundationState.player].push(foundationState);
+    entityState.playerName = playerStates[entityState.player].name;
+    queues[entityState.player].push(entityState);
   }
 
   return queues;

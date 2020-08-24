@@ -12,7 +12,7 @@ ProductionMode.prototype.getQueues = function(players, simulationState) {
     queues[playerId] = [];
 
   const playerQuery = players.length === 1 ? players[0] : -1;
-  const entityStates = Engine.GuiInterfaceCall("prodmod_GetPlayersProduction", playerQuery);
+  const entityStates = Engine.GuiInterfaceCall("monitor_GetPlayersProduction", playerQuery);
   let entityCounts = {};
 
   // Group entities with same template

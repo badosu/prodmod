@@ -1,64 +1,64 @@
 "use strict";
 
-let g_prodmod_Monitor;
+let g_monitor_Monitor;
 
-const g_prodmod_hotkeys = {
-	"prodmod.toggleShowNames": function (ev) {
+const g_monitor_hotkeys = {
+	"monitor.toggleShowNames": function (ev) {
     if (ev.type == "hotkeydown")
-      g_prodmod_Monitor.toggleShowNames();
+      g_monitor_Monitor.toggleShowNames();
 		return true;
 	},
-	"prodmod.toggleVisibility": function (ev) {
+	"monitor.toggleVisibility": function (ev) {
     if (ev.type == "hotkeydown")
-      g_prodmod_Monitor.toggleVisibility();
+      g_monitor_Monitor.toggleVisibility();
 		return true;
 	},
-	"prodmod.toggleMode": function (ev) {
+	"monitor.toggleMode": function (ev) {
     if (ev.type == "hotkeydown")
-      g_prodmod_Monitor.onModeToggle();
+      g_monitor_Monitor.onModeToggle();
 		return true;
 	},
-	"prodmod.quickShowUnits": function (ev) {
+	"monitor.quickShowUnits": function (ev) {
     if (ev.type == "hotkeydown") {
-      g_prodmod_Monitor.show(0);
-      g_prodmod_Monitor.update(true);
+      g_monitor_Monitor.show(0);
+      g_monitor_Monitor.update(true);
     } else {
-      g_prodmod_Monitor.hide();
+      g_monitor_Monitor.hide();
     }
 		return true;
 	},
-	"prodmod.quickShowProduction": function (ev) {
+	"monitor.quickShowProduction": function (ev) {
     if (ev.type == "hotkeydown") {
-      g_prodmod_Monitor.show(1);
-      g_prodmod_Monitor.update(true);
+      g_monitor_Monitor.show(1);
+      g_monitor_Monitor.update(true);
     } else {
-      g_prodmod_Monitor.hide();
+      g_monitor_Monitor.hide();
     }
 		return true;
 	},
-	"prodmod.quickShowTech": function (ev) {
+	"monitor.quickShowTech": function (ev) {
     if (ev.type == "hotkeydown") {
-      g_prodmod_Monitor.show(2);
-      g_prodmod_Monitor.update(true);
+      g_monitor_Monitor.show(2);
+      g_monitor_Monitor.update(true);
     } else {
-      g_prodmod_Monitor.hide();
+      g_monitor_Monitor.hide();
     }
 		return true;
 	},
 };
 
-function prodmod_init() {
-  const enabled = Engine.ConfigDB_GetValue("user", "prodmod.enabled") == "true";
-  const showNames = Engine.ConfigDB_GetValue("user", "prodmod.showNames") == "true";
+function monitor_init() {
+  const enabled = Engine.ConfigDB_GetValue("user", "monitor.enabled") == "true";
+  const showNames = Engine.ConfigDB_GetValue("user", "monitor.showNames") == "true";
 
-  g_prodmod_Monitor = new Monitor(g_ViewedPlayer, enabled, showNames);
+  g_monitor_Monitor = new Monitor(g_ViewedPlayer, enabled, showNames);
 }
 
 // TODO: Use a24 registerPlayersInitHandler
 autociv_patchApplyN("init", function(target, that, args) {
 	const result = target.apply(that, args);
 
-  prodmod_init()
+  monitor_init()
 
   return result;
 });
@@ -67,7 +67,7 @@ autociv_patchApplyN("init", function(target, that, args) {
 autociv_patchApplyN("onTick", function(target, that, args) {
 	const result = target.apply(that, args);
 
-  g_prodmod_Monitor.update();
+  g_monitor_Monitor.update();
 
   return result;
 });
@@ -75,8 +75,8 @@ autociv_patchApplyN("onTick", function(target, that, args) {
 autociv_patchApplyN("handleInputAfterGui", function (target, that, args)
 {
 	let [ev] = args;
-	if ("hotkey" in ev && ev.hotkey in g_prodmod_hotkeys)
-  	return !!g_prodmod_hotkeys[ev.hotkey](ev);
+	if ("hotkey" in ev && ev.hotkey in g_monitor_hotkeys)
+  	return !!g_monitor_hotkeys[ev.hotkey](ev);
 
 	return target.apply(that, args);
 });

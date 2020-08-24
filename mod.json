@@ -1,8 +1,8 @@
 {
-  "name": "specmod",
+  "name": "monitor",
   "version": "0.0.1",
-  "label": "makes spec awesome",
-  "url": "github.com/leite/specmod",
-  "description": "specmod",
+  "label": "Monitor",
+  "url": "http://github.com/badosu/prodmod",
+  "description": "Monitor gameplay stats",
   "dependencies": ["0ad=0.0.23"]
 }

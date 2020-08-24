@@ -1,4 +1,4 @@
-function prodmod_initCheck()
+function monitor_initCheck()
 {
   let state = {
       "needsRestart": false,
@@ -14,13 +14,13 @@ function prodmod_initCheck()
 
   // Check settings
   {
-    const settings = Engine.ReadJSONFile("prodmod_data/default_config.json");
+    const settings = Engine.ReadJSONFile("monitor_data/default_config.json");
 
     // Normal check. Check for settings entries missing
     for (let key in settings) {
       if (!Engine.ConfigDB_GetValue("user", key)) {
         configSaveToMemoryAndToDisk(key, settings[key]);
-        state.reasons.add("New Prodmod settings added.");
+        state.reasons.add("New monitor settings added.");
       }
     }
   }
@@ -30,7 +30,7 @@ function prodmod_initCheck()
 
 autociv_patchApplyN("init", function (target, that, args)
 {
-  const state = prodmod_initCheck();
+  const state = monitor_initCheck();
 
   if (state.needsRestart) {
     const message = ["0 A.D needs to restart.\n", "Reasons:\n"].
@@ -38,7 +38,7 @@ autociv_patchApplyN("init", function (target, that, args)
         join("\n");
 
     messageBox(500, 300, message,
-        "Prodmod mod notice",
+        "monitor mod notice",
         ["Cancel", "Restart"],
         [() => { }, () => Engine.RestartEngine()]
     );

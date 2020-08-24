@@ -36,7 +36,7 @@ function autociv_patchApplyN()
     prefix[method] = new Proxy(prefix[method], { apply: patch });
 }
 
-GuiInterface.prototype.prodmod_GetResearchedTechs = function(_currentPlayer, players)
+GuiInterface.prototype.monitor_GetResearchedTechs = function(_currentPlayer, players)
 {
   const internalTechs = ["pair", "bonus", "wooden_walls", "civpenalty"];
 
@@ -102,7 +102,7 @@ GuiInterface.prototype.prodmod_GetResearchedTechs = function(_currentPlayer, pla
 	return ret;
 }
 
-GuiInterface.prototype.prodmod_GetPlayersProduction = function(_currentPlayer, player)
+GuiInterface.prototype.monitor_GetPlayersProduction = function(_currentPlayer, player)
 {
   const cmpRangeManager = Engine.QueryInterface(SYSTEM_ENTITY, IID_RangeManager);
 	const entities = (player && player > 0) ? cmpRangeManager.GetEntitiesByPlayer(player) : cmpRangeManager.GetNonGaiaEntities();
@@ -189,7 +189,7 @@ GuiInterface.prototype.prodmod_GetPlayersProduction = function(_currentPlayer, p
   return result;
 }
 
-GuiInterface.prototype.prodmod_GetTemplateEntities = function(_currentPlayer, args)
+GuiInterface.prototype.monitor_GetTemplateEntities = function(_currentPlayer, args)
 {
   const [player, templates] = args;
 
@@ -221,22 +221,22 @@ GuiInterface.prototype.prodmod_GetTemplateEntities = function(_currentPlayer, ar
 
 // Adding a new key to the exposedFunctions object doesn't work,
 // must patch the original function
-let prodmod_exposedFunctions = {
-    "prodmod_GetPlayersProduction": 1,
-    "prodmod_GetResearchedTechs": 1,
-    "prodmod_GetTemplateEntities": 1,
+let monitor_exposedFunctions = {
+    "monitor_GetPlayersProduction": 1,
+    "monitor_GetResearchedTechs": 1,
+    "monitor_GetTemplateEntities": 1,
 };
 
 autociv_patchApplyN(GuiInterface.prototype, "ScriptCall", function (target, that, args)
 {
     let [player, name, vargs] = args;
-    return name in prodmod_exposedFunctions ? that[name](player, vargs) :
+    return name in monitor_exposedFunctions ? that[name](player, vargs) :
         target.apply(that, args);
 })
 
 Engine.ReRegisterComponentType(IID_GuiInterface, "GuiInterface", GuiInterface);
 
-//GuiInterface.prototype.prodmod_GetUnitsState = function(ent)
+//GuiInterface.prototype.monitor_GetUnitsState = function(ent)
 //{
 //  let ret = {};
 //

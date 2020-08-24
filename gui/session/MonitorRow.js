@@ -28,7 +28,7 @@ function MonitorRow(rowIndex, playerState, displayLabel) {
 MonitorRow.prototype.update = function(entities, playerState, displayLabel, maxPop) {
   const ccTemplate = Object.keys(playerState.typeCountsByClass.CivCentre || {})[0];
   if (ccTemplate) {
-    const ccEntity = Engine.GuiInterfaceCall('prodmod_GetTemplateEntities', [playerState.id, [ccTemplate]])[0];
+    const ccEntity = Engine.GuiInterfaceCall('monitor_GetTemplateEntities', [playerState.id, [ccTemplate]])[0];
 
     if (ccEntity) {
       const moveToCC = function() {

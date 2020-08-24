@@ -25,7 +25,7 @@ UnitsMode.prototype.getQueues = function(players, simulationState) {
 
     let queue = [];
     const templates = Object.keys(unitCounts);
-    const states = Engine.GuiInterfaceCall('prodmod_GetTemplateEntities', [playerId, templates]);
+    const states = Engine.GuiInterfaceCall('monitor_GetTemplateEntities', [playerId, templates]);
 
     // Group duplicate templates
     // e.g. units/cart_mechanical_siege_ballista_packed, units/cart_mechanical_siege_ballista_unpacked

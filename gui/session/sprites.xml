@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <sprites>
-  <!-- (prodmod) -->
+  <!-- (monitor) -->
 
 	<sprite name="MonitorBg">
 		<image
@@ -30,7 +30,7 @@
 		/>
 	</sprite>
 
-  <!-- (prodmod) -->
+  <!-- (monitor) -->
 
   <sprite name="groupsIcon">
     <image texture="session/icons/groups.png" size="0 0 100% 100%" />

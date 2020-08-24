@@ -22,7 +22,7 @@ TechMode.prototype.RankableTechs = [
 ];
 
 TechMode.prototype.getQueues = function(players, simulationState) {
-  let techs = Engine.GuiInterfaceCall("prodmod_GetResearchedTechs", players);
+  let techs = Engine.GuiInterfaceCall("monitor_GetResearchedTechs", players);
 
   // Could just return the value above if we didn't have to group techs :`-(
   const rankKeys = Object.keys(Monitor.prototype.Ranks);

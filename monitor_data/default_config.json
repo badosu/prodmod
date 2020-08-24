@@ -1,0 +1,10 @@
+{
+	"hotkey.monitor.toggleShowNames": "Space+Tab",
+	"hotkey.monitor.toggleVisibility": "Space+Ctrl",
+	"hotkey.monitor.toggleMode": "Space+Shift",
+	"hotkey.monitor.quickShowUnits": "Space+q",
+	"hotkey.monitor.quickShowProduction": "Space+w",
+	"hotkey.monitor.quickShowTech": "Space+e",
+	"monitor.enabled": "false",
+	"monitor.showNames": "true"
+}

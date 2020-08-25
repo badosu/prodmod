@@ -72,9 +72,31 @@ autociv_patchApplyN("onTick", function(target, that, args) {
   return result;
 });
 
+let dragging = false;
+autociv_patchApplyN("handleInputBeforeGui", function (target, that, args)
+{
+	let [ev, el] = args;
+  
+  const isHoveringMonitorEl = el && el.tooltip && el.tooltip.indexOf('Overview') > -1;
+
+  if (dragging && ev.type == 'mousebuttonup' && ev.button == 3)
+    dragging = false;
+
+  if (!isHoveringMonitorEl)
+    return target.apply(that, args);
+
+  if (ev.type == 'mousebuttondown' && ev.button == 3)
+    dragging = true;
+  else if (dragging && ev.type == 'mousemotion')
+    g_monitor_Monitor.setPos(ev.x, ev.y);
+
+	return target.apply(that, args);
+});
+
 autociv_patchApplyN("handleInputAfterGui", function (target, that, args)
 {
 	let [ev] = args;
+
 	if ("hotkey" in ev && ev.hotkey in g_monitor_hotkeys)
   	return !!g_monitor_hotkeys[ev.hotkey](ev);
 

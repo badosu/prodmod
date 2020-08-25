@@ -8,6 +8,16 @@ function Monitor(viewedPlayer, active = true, showNames = true, mode = 0, modes 
   this.titleContainer = Engine.GetGUIObjectByName('MonitorTitleContainer');
   this.showNames = showNames;
 
+  const posX = +Engine.ConfigDB_GetValue("user", "monitor.pos.x");
+  const posY = +Engine.ConfigDB_GetValue("user", "monitor.pos.y");
+  if (posX && posY) {
+    this.pos.left = posX;
+    this.pos.top = posY;
+  } else
+    this.pos = null;
+
+  this.scale = +Engine.ConfigDB_GetValue("user", "gui.scale");
+
   this.modes = modes.map((m) => {
     let instance = Object.create(m.prototype);
     m.apply(instance, []);
@@ -22,6 +32,11 @@ function Monitor(viewedPlayer, active = true, showNames = true, mode = 0, modes 
   this.titleContainer.onPress = this.onModeToggle.bind(this);
 
   this.reset();
+}
+
+Monitor.prototype.setPos = function(x, y) {
+  this.pos = { 'top': Math.round(y / this.scale) - 8, 'left': Math.round(x / this.scale) - 8 };
+  this.show();
 }
 
 Monitor.prototype.reset = function(simulationState = Engine.GuiInterfaceCall('GetExtendedSimulationState')) {
@@ -157,7 +172,13 @@ Monitor.prototype.show = function(mode = this.mode) {
   this.active = true;
 
   const size = this.container.size;
-  size.top = this.singlePlayer() ? this.TopSingle : this.Top;
+  if (this.pos) {
+    size.top = this.pos.top;
+    size.left = this.pos.left;
+  } else {
+    size.top = this.singlePlayer() ? this.TopSingle : this.Top;
+  }
+
   size.bottom = this.TitleHeight + MonitorRow.prototype.MarginTop + this.players.length * (
     MonitorRow.prototype.VerticalGap + MonitorRow.prototype.Height
   ) + size.top;

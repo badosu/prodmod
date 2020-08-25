@@ -10,10 +10,9 @@ function Monitor(viewedPlayer, active = true, showNames = true, mode = 0, modes 
 
   const posX = +Engine.ConfigDB_GetValue("user", "monitor.pos.x");
   const posY = +Engine.ConfigDB_GetValue("user", "monitor.pos.y");
-  if (posX && posY) {
-    this.pos.left = posX;
-    this.pos.top = posY;
-  } else
+  if (posX && posY)
+    this.pos = { 'left': parseInt(posX), 'top': parseInt(posY) };
+  else
     this.pos = null;
 
   this.scale = +Engine.ConfigDB_GetValue("user", "gui.scale");

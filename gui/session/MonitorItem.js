@@ -36,9 +36,8 @@ MonitorItem.prototype.update = function(item, leftMargin = 0) {
   this.progress.size = progressSize;
   this.btn.size = btnSize;
 
-  let tooltip = item.tooltip;
-
-  this.btn.tooltip = tooltip;
+  if (item.tooltip)
+    this.btn.tooltip = item.tooltip;
   this.btn.hidden = false;
   this.cnt.caption = item.count && item.count > 1 ? item.count : "";
 

@@ -36,9 +36,67 @@ function autociv_patchApplyN()
     prefix[method] = new Proxy(prefix[method], { apply: patch });
 }
 
+GuiInterface.prototype.monitor_GetPhaseTechs = function(_currentPlayer, players) {
+  const phaseTechs = ["phase_village", "phase_town", "phase_town_athen", "phase_town_generic", "phase_city", "phase_city_athen", "phase_city_generic"];
+
+  let ret = {};
+	for (let playerId of players) {
+	  const cmpTechnologyManager = QueryPlayerIDInterface(playerId, IID_TechnologyManager);
+    if (!cmpTechnologyManager)
+      continue;
+
+    let retTech = null;
+    let researcher = null;
+    for(let tech of cmpTechnologyManager.GetResearchedTechs()) {
+      if (phaseTechs.indexOf(tech) > -1)
+        retTech = tech;
+    }
+
+	  for (let tech of cmpTechnologyManager.GetStartedTechs()) {
+      if (phaseTechs.indexOf(tech) > -1) {
+        retTech = tech;
+	  	  researcher = cmpTechnologyManager.GetResearcher(tech);
+        break;
+      }
+    }
+
+    const technologyTemplate = TechnologyTemplates.Get(retTech);
+
+    if (!technologyTemplate)
+      continue;
+
+    retTech = {
+      "icon": "technologies/" + technologyTemplate.icon,
+      "templateName": retTech,
+      "name": technologyTemplate.genericName,
+      "description": technologyTemplate.tooltip
+    };
+
+    if (researcher) {
+	    let cmpPosition = Engine.QueryInterface(researcher, IID_Position);
+	    if (cmpPosition && cmpPosition.IsInWorld())
+	    	retTech.position = cmpPosition.GetPosition();
+
+	  	let cmpProductionQueue = Engine.QueryInterface(researcher, IID_ProductionQueue);
+	  	if (cmpProductionQueue) {
+        const batch = cmpProductionQueue.GetQueue()[0];
+	  		retTech.progress = batch.progress;
+	  		retTech.timeRemaining = Math.round(batch.timeRemaining / 1000.0);
+	  	} else {
+	  		retTech.progress = 0;
+	  		retTech.timeRemaining = 0;
+	  	}
+    }
+
+    ret[playerId] = retTech;
+  }
+
+  return ret;
+}
+
 GuiInterface.prototype.monitor_GetResearchedTechs = function(_currentPlayer, players)
 {
-  const internalTechs = ["pair", "bonus", "wooden_walls", "civpenalty"];
+  const internalTechs = ["phase_", "pair", "bonus", "wooden_walls", "civpenalty"];
 
   let ret = {};
 	for (let playerId of players) {
@@ -48,8 +106,10 @@ GuiInterface.prototype.monitor_GetResearchedTechs = function(_currentPlayer, pla
 
     let result = [];
 
-    const techs = Array.from(cmpTechnologyManager.GetResearchedTechs());
-    for(let tech of techs.filter(t => internalTechs.every(s => t.indexOf(s) == -1 ))) {
+    for(let tech of cmpTechnologyManager.GetResearchedTechs()) {
+      if (!internalTechs.every(s => tech.indexOf(s) == -1 ))
+        continue;
+
       const technologyTemplate = TechnologyTemplates.Get(tech);
 
       if (!technologyTemplate)
@@ -65,6 +125,9 @@ GuiInterface.prototype.monitor_GetResearchedTechs = function(_currentPlayer, pla
 
 	  for (let tech of cmpTechnologyManager.GetStartedTechs())
 	  {
+      if (!internalTechs.every(s => tech.indexOf(s) == -1 ))
+        continue;
+
       const technologyTemplate = TechnologyTemplates.Get(tech);
 
       if (!technologyTemplate)
@@ -167,6 +230,9 @@ GuiInterface.prototype.monitor_GetPlayersProduction = function(_currentPlayer, p
         ret.name = unitTemplate.Identity.GenericName;
         ret.icon = unitTemplate.Identity.Icon;
       } else if (batch.technologyTemplate) {
+        if (batch.technologyTemplate.startsWith('phase_'))
+          continue;
+
         let technologyTemplate = TechnologyTemplates.Get(batch.technologyTemplate);
 
         if (!technologyTemplate)
@@ -223,6 +289,7 @@ GuiInterface.prototype.monitor_GetTemplateEntities = function(_currentPlayer, ar
 // must patch the original function
 let monitor_exposedFunctions = {
     "monitor_GetPlayersProduction": 1,
+    "monitor_GetPhaseTechs": 1,
     "monitor_GetResearchedTechs": 1,
     "monitor_GetTemplateEntities": 1,
 };

@@ -125,6 +125,15 @@ Monitor.prototype.update = function(forceRender = false) {
   }
 
   const queues = this.modes[this.mode].getQueues(this.players, this.simulationState);
+  const phaseTechs = Engine.GuiInterfaceCall("monitor_GetPhaseTechs", this.players);
+
+  for (let playerId in phaseTechs) {
+    const phaseTech = phaseTechs[playerId];
+    if (phaseTech && queues[playerId]) {
+      phaseTech.tooltip = templateTooltip(this.simulationState.players[playerId], phaseTech);
+      queues[playerId].unshift(phaseTech)
+    }
+  }
 
   this.updateRows(queues, maxPop);
 

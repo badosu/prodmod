@@ -5,7 +5,6 @@ function TechMode() {
 TechMode.prototype = Object.create(Mode.prototype);
 
 TechMode.prototype.RankableTechs = [
-  ["phase_village", "phase_town", "phase_town_athen", "phase_town_generic", "phase_city", "phase_city_athen", "phase_city_generic"],
   ["gather_lumbering_ironaxes", "gather_lumbering_strongeraxes", "gather_lumbering_sharpaxes"],
   ["gather_farming_plows", "gather_farming_training", "gather_farming_fertilizer"],
   ["gather_mining_servants", "gather_mining_serfs", "gather_mining_slaves"],

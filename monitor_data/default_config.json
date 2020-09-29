@@ -5,6 +5,7 @@
 	"hotkey.monitor.quickShowUnits": "Space+q",
 	"hotkey.monitor.quickShowProduction": "Space+w",
 	"hotkey.monitor.quickShowTech": "Space+e",
+	"monitor.replaceTopPanel": "false",
 	"monitor.enabled": "false",
 	"monitor.showNames": "true"
 }

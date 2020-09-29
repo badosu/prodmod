@@ -1,6 +1,7 @@
 "use strict";
 
 let g_monitor_Monitor;
+let g_monitor_TopPanel;
 
 const g_monitor_hotkeys = {
 	"monitor.toggleShowNames": function (ev) {
@@ -47,9 +48,53 @@ const g_monitor_hotkeys = {
 	},
 };
 
+function prodmod_updateTopPanel()
+{
+  const isPlayer = g_ViewedPlayer > 0;
+
+  let viewPlayer = Engine.GetGUIObjectByName("viewPlayer");
+  viewPlayer.hidden = !g_IsObserver && !g_DevSettings.changePerspective;
+
+  Engine.GetGUIObjectByName("diplomacyButton").hidden = !isPlayer;
+  Engine.GetGUIObjectByName("tradeButton").hidden = !isPlayer;
+  Engine.GetGUIObjectByName("optionFollowPlayer").hidden = !isPlayer;
+  let topPanelWidth = isPlayer ? 508 : 430;
+
+  Engine.GetGUIObjectByName("topPanel").size = "100%-" + topPanelWidth.toString() + " 0 100%+3 36";//"-3 0 100%+3 36"
+  Engine.GetGUIObjectByName("tradeButton").size = "100%-503 4 100%-475 32";//"100%-224 4 100%-196 32"
+  Engine.GetGUIObjectByName("diplomacyButton").size = "100%-475 4 100%-447 32";//"100%-254 4 100%-226 32"
+  Engine.GetGUIObjectByName("optionFollowPlayer").size = "100%-447 4 100%-427 100%"; //"50%+54 4 50%+256 100%"
+  Engine.GetGUIObjectByName("viewPlayer").size = "100%-424 5 100%-224 100%-5";//"85%-279 5 100%-293 100%-5"
+  Engine.GetGUIObjectByName("gameSpeedButton").size = "100%-222 4 100%-194 32";//"100%-284 4 100%-256 32"
+
+  Engine.GetGUIObjectByName("pauseButton").enabled = !g_IsObserver || !g_IsNetworked || g_IsController;
+  Engine.GetGUIObjectByName("menuResignButton").enabled = !g_IsObserver;
+  Engine.GetGUIObjectByName("lobbyButton").enabled = Engine.HasXmppClient();
+}
+
+function replaceTopPanel() {
+  autociv_patchApplyN("updateTopPanel", function(_target, that, args) {
+    prodmod_updateTopPanel.apply(that, args);
+  });
+
+  autociv_patchApplyN("updatePlayerDisplay", function(_target, _that, _args) {
+    Engine.GetGUIObjectByName("observerText").hidden = true;
+    Engine.GetGUIObjectByName("followPlayerLabel").hidden = true;
+    Engine.GetGUIObjectByName("population").hidden = true;
+    Engine.GetGUIObjectByName("resourceCounts").hidden = true;
+    Engine.GetGUIObjectByName("civIcon").hidden = true;
+
+    updateTopPanel()
+  });
+}
+
 function monitor_init() {
   const enabled = Engine.ConfigDB_GetValue("user", "monitor.enabled") == "true";
   const showNames = Engine.ConfigDB_GetValue("user", "monitor.showNames") == "true";
+  const shouldReplaceTopPanel = Engine.ConfigDB_GetValue("user", "monitor.replaceTopPanel") == "true";
+
+  if (shouldReplaceTopPanel)
+    replaceTopPanel();
 
   g_monitor_Monitor = new Monitor(g_ViewedPlayer, enabled, showNames);
 }

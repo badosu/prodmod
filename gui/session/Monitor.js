@@ -42,12 +42,12 @@ Monitor.prototype.reset = function(simulationState = Engine.GuiInterfaceCall('Ge
   this.simulationState = simulationState;
 
   const playerStates = simulationState.players;
-  const isObserver = !playerStates[this.viewedPlayer] || playerStates[this.viewedPlayer].state != "active";
+  const isObserver = !(playerStates[this.viewedPlayer] && playerStates[this.viewedPlayer].state == "active");
 
   if (isObserver) {
     this.players = [];
     for (let i = 1; i < playerStates.length; i++)
-      if (playerStates[i].state === "active")
+      if (playerStates[i].state === "active" || playerStates[i].state === "won")
         this.players.push(i);
   } else {
     this.players = [this.viewedPlayer];
@@ -176,6 +176,11 @@ Monitor.prototype.toggleVisibility = function() {
 }
 
 Monitor.prototype.show = function(mode = this.mode) {
+  if (this.players.length == 0) {
+    this.container.hidden = true;
+    return;
+  }
+
   this.mode = mode;
   this.active = true;
 
@@ -202,7 +207,7 @@ Monitor.prototype.show = function(mode = this.mode) {
 }
 
 Monitor.prototype.singlePlayer = function() {
-  return this.players.length == 1;
+  return this.players.length == 1 && this.players[0] == this.viewedPlayer;
 }
 
 Monitor.prototype.tooEarly = function() {

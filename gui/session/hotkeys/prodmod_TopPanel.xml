@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<object type="text" name="MonitorTopPanel" size="0 0 50% 60" textcolor="white" hidden="true" z="90">
+  <repeat count="8" var="i">
+    <object name="MonitorTopPanelRow[i]" type="text" size="0 0 100% 33" z="90">
+      <repeat count="8" var="j">
+        <object name="MonitorTopPanelRow[i]Item[j]" size="0 3 60 33" type="text" hidden="false">
+          <object name="MonitorTopPanelRow[i]Item[j]Btn" size="0 0 30 30" type="button" hidden="false" sprite="color: 0 0 0 200">
+            <object name="MonitorTopPanelRow[i]Item[j]Icon" type="image" ghost="true"/>
+          </object>
+          <object name="MonitorTopPanelRow[i]Item[j]SubBtn" size="24 17 40 33" type="button" hidden="true">
+            <object name="MonitorTopPanelRow[i]Item[j]SubIcon" type="image"/>
+          </object>
+          <object name="MonitorTopPanelRow[i]Item[j]Title" size="28 3 60 19" textcolor="white" type="button"
+            hidden="false" font="sans-bold-stroke-12" text_align="left" text_valign="bottom">
+          </object>
+          <object name="MonitorTopPanelRow[i]Item[j]Subtitle" size="28 18 60 32" textcolor="white" type="text"
+            hidden="false" font="sans-stroke-12" text_align="left" text_valign="bottom">
+          </object>
+        </object>
+      </repeat>
+    </object>
+  </repeat>
+</object>

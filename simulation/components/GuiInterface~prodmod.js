@@ -268,7 +268,7 @@ GuiInterface.prototype.monitor_GetTemplateEntities = function(_currentPlayer, ar
   let result = new Array(templates.length).fill(null);
   let remainingTemplates = [...templates];
 
-  for (let entity of cmpRangeManager.GetEntitiesByPlayer(player)) {
+  for (let entity of cmpRangeManager.GetEntitiesByPlayer(parseInt(player))) {
     const templateName = cmpTemplateManager.GetCurrentTemplateName(entity);
 
     const rIndex = remainingTemplates.indexOf(templateName);

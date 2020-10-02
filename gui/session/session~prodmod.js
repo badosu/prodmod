@@ -1,7 +1,8 @@
 "use strict";
 
 let g_monitor_Monitor;
-let g_monitor_TopPanel;
+//let g_monitor_TopPanel;
+let g_monitor_Manager;
 
 const g_monitor_hotkeys = {
 	"monitor.toggleShowNames": function (ev) {
@@ -86,6 +87,8 @@ function replaceTopPanel() {
 
     updateTopPanel()
   });
+
+  g_monitor_TopPanel = new MonitorTopPanel();
 }
 
 function monitor_init() {
@@ -93,10 +96,12 @@ function monitor_init() {
   const showNames = Engine.ConfigDB_GetValue("user", "monitor.showNames") == "true";
   const shouldReplaceTopPanel = Engine.ConfigDB_GetValue("user", "monitor.replaceTopPanel") == "true";
 
-  if (shouldReplaceTopPanel)
-    replaceTopPanel();
+  g_monitor_Manager = new MonitorManager(g_ViewedPlayer);
 
-  g_monitor_Monitor = new Monitor(g_ViewedPlayer, enabled, showNames);
+  //if (shouldReplaceTopPanel)
+  //  replaceTopPanel();
+
+  g_monitor_Monitor = new Monitor(enabled, showNames);
 }
 
 // TODO: Use a24 registerPlayersInitHandler
@@ -112,7 +117,15 @@ autociv_patchApplyN("init", function(target, that, args) {
 autociv_patchApplyN("onTick", function(target, that, args) {
 	const result = target.apply(that, args);
 
-  g_monitor_Monitor.update();
+  g_monitor_Manager.update()
+
+  if (g_monitor_Monitor.active)
+    g_monitor_Monitor.update();
+
+  //if (g_monitor_TopPanel)
+  //  g_monitor_TopPanel.update(false);
+
+  g_monitor_Manager.tick()
 
   return result;
 });

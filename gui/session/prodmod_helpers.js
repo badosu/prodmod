@@ -2,6 +2,10 @@ function darkenedSprite(color, factor = 0.25) {
   return `color: ${darkenedColor(color, factor)} 255`;
 }
 
+function playerColor(player) {
+  return `${Math.round(player.color.r)} ${Math.round(player.color.g)} ${Math.round(player.color.b)}`;
+}
+
 function darkenedColor(color, factor = 0.25) {
   let r = color.r * 255;
   let g = color.g * 255;
@@ -78,7 +82,7 @@ function unitNameWithRank(name, rank) {
 }
 
 function formattedPlayerName(playerState) {
-  return setStringTags(playerState.name, { "font": "sans-bold-13", "color": brightenedColor(playerState.color) });
+  return setStringTags(playerState.name, { "font": "sans-bold-13", "color": playerState.brightenedColor });
 }
 
 function fontColor(text, color) {

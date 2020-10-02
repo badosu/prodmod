@@ -1,11 +1,11 @@
-function MonitorItem(rowIndex, itemIndex, color) {
+function MonitorItem(rowIndex, itemIndex, sprite) {
   this.itemIndex = itemIndex;
   this.icon = Engine.GetGUIObjectByName(`MonitorRow[${rowIndex}]Item[${itemIndex}]Icon`);
   this.btn = Engine.GetGUIObjectByName(`MonitorRow[${rowIndex}]Item[${itemIndex}]Btn`);
   this.cnt = Engine.GetGUIObjectByName(`MonitorRow[${rowIndex}]Item[${itemIndex}]Count`);
   this.progress = Engine.GetGUIObjectByName(`MonitorRow[${rowIndex}]Item[${itemIndex}]Prg`);
   this.rank = Engine.GetGUIObjectByName(`MonitorRow[${rowIndex}]Item[${itemIndex}]Rank`);
-  this.progress.sprite = brightenedSprite(color);
+  this.progress.sprite = sprite;
 
   this.btn.onPress = this.onPress.bind(this);
 }

@@ -20,8 +20,8 @@ TechMode.prototype.RankableTechs = [
   ["heal_rate", "heal_rate_2"]
 ];
 
-TechMode.prototype.getQueues = function(players, simulationState) {
-  let techs = Engine.GuiInterfaceCall("monitor_GetResearchedTechs", players);
+TechMode.prototype.getQueues = function() {
+  let techs = Engine.GuiInterfaceCall("monitor_GetResearchedTechs", g_monitor_Manager.players);
 
   // Could just return the value above if we didn't have to group techs :`-(
   const rankKeys = Object.keys(Monitor.prototype.Ranks);
@@ -35,7 +35,7 @@ TechMode.prototype.getQueues = function(players, simulationState) {
 
     // for each tech
     for (let playerTech of playerTechs) {
-      playerTech.tooltip = templateTooltip(simulationState.players[playerId], playerTech);
+      playerTech.tooltip = templateTooltip(g_monitor_Manager.playerStates[playerId], playerTech);
 
       for (let i = 0; i < rankableTechsSize; i++) {
         let rankableTechGroup = this.RankableTechs[i];

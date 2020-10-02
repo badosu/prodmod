@@ -1,9 +1,5 @@
-const perfMode = false;
-
-function Monitor(viewedPlayer, active = true, showNames = true, mode = 0, modes = [UnitsMode, ProductionMode, TechMode]) {
+function Monitor(active = true, showNames = true, mode = 0, modes = [UnitsMode, ProductionMode, TechMode]) {
   this.container = Engine.GetGUIObjectByName('Monitor');
-  this.perf = Engine.GetGUIObjectByName('MonitorPerf');
-  this.perf.hidden = !perfMode;
   this.title = Engine.GetGUIObjectByName('MonitorTitle');
   this.titleContainer = Engine.GetGUIObjectByName('MonitorTitleContainer');
   this.showNames = showNames;
@@ -23,8 +19,6 @@ function Monitor(viewedPlayer, active = true, showNames = true, mode = 0, modes 
     return instance;
   });
   this.mode = mode;
-  this.lastCheck = Date.now();
-  this.viewedPlayer = viewedPlayer;
   this.active = active;
   this.rows = {};
 
@@ -38,39 +32,21 @@ Monitor.prototype.setPos = function(x, y) {
   this.show();
 }
 
-Monitor.prototype.reset = function(simulationState = Engine.GuiInterfaceCall('GetExtendedSimulationState')) {
-  this.simulationState = simulationState;
-
-  const playerStates = simulationState.players;
-  const isObserver = !(playerStates[this.viewedPlayer] && playerStates[this.viewedPlayer].state == "active");
-
-  if (isObserver) {
-    this.players = [];
-    for (let i = 1; i < playerStates.length; i++)
-      if (playerStates[i].state === "active" || playerStates[i].state === "won")
-        this.players.push(i);
-  } else {
-    this.players = [this.viewedPlayer];
+Monitor.prototype.reset = function() {
+  if (!g_monitor_Manager.isObserver())
     this.showNames = false;
-  }
-
-  // Hide when no players to monitor
-  if (this.players.length === 0) {
-    this.hide();
-    return;
-  }
 
   // Hide previous rows if reset from previous state
   for (let row in this.rows)
     this.rows[row].hide();
 
+  const playerStates = g_monitor_Manager.playerStates;
   this.rows = {};
-  for (let i = 0; i < this.players.length; i++) {
-    const playerId = this.players[i];
-    const playerState = playerStates[playerId];
-    if (this.players.length <= 2)
-      playerStates[playerId].hideTeam = true;
-    this.rows[playerId] = new MonitorRow(i, playerState, isObserver);
+  let rowIndex = 0;
+  for (let playerId in playerStates) {
+    this.rows[playerId] = new MonitorRow(rowIndex, playerId);
+
+    rowIndex++;
   }
 
   if (this.active)
@@ -82,68 +58,47 @@ Monitor.prototype.onModeToggle = function() {
   this.mode %= Object.keys(this.modes).length;
 
   this.show();
-  this.update(true);
+  this.update();
 }
 
 Monitor.prototype.toggleShowNames = function() {
   this.showNames = !this.showNames;
-  this.update(true);
+  this.update();
 }
 
 Monitor.prototype.currentMode = function() {
   return this.modes[this.mode];
 }
 
-Monitor.prototype.update = function(forceRender = false) {
-  if (!this.active || (!forceRender && (Engine.IsPaused() || this.tooEarly())))
+Monitor.prototype.update = function() {
+  if (g_monitor_Manager.noPlayers()) {
+    this.hide();
     return;
-
-  const startPerf = Engine.GetMicroseconds();
-
-  this.simulationState = Engine.GuiInterfaceCall('GetExtendedSimulationState')
-  const playerStates = this.simulationState.players;
-
-  let maxPop = 0;
-  // Strip rank/nick
-  for (let playerId in playerStates) {
-    const playerState = playerStates[playerId];
-    playerStates[playerId].name = playerState.name.split(' ')[0];
-    if (playerState.popCount > maxPop)
-      maxPop = playerState.popCount;
   }
 
   // Reset Monitor when a player is not active anymore
   // TODO: Use a24 registerPlayersFinishedHandler
-  if (this.singlePlayer()) {
-    if (playerStates[this.viewedPlayer].state != "active")
-      this.reset(this.simulationState);
-  } else {
-    const activePlayers = playerStates.filter(playerState => playerState.civ != "gaia" && playerState.state == "active");
-    if (activePlayers.length !== this.players.length)
-      this.reset(this.simulationState);
-  }
+  if (g_monitor_Manager.playerNotActive() || g_monitor_Manager.someoneNotActive())
+    this.reset();
 
-  const queues = this.modes[this.mode].getQueues(this.players, this.simulationState);
-  const phaseTechs = Engine.GuiInterfaceCall("monitor_GetPhaseTechs", this.players);
+  const queues = this.modes[this.mode].getQueues();
+  const phaseTechs = Engine.GuiInterfaceCall("monitor_GetPhaseTechs", g_monitor_Manager.players);
 
   for (let playerId in phaseTechs) {
     const phaseTech = phaseTechs[playerId];
     if (phaseTech && queues[playerId]) {
-      phaseTech.tooltip = templateTooltip(this.simulationState.players[playerId], phaseTech);
+      phaseTech.tooltip = templateTooltip(g_monitor_Manager.playerStates[playerId], phaseTech);
       queues[playerId].unshift(phaseTech)
     }
   }
 
-  this.updateRows(queues, maxPop);
-
-  if (perfMode)
-    this.perf.caption = `${((Engine.GetMicroseconds() - startPerf) / 1000).toFixed(1)}ms`;
+  this.updateRows(queues);
 }
 
-Monitor.prototype.updateRows = function(queues, maxPop = 0) {
-  const playerStates = this.simulationState.players;
+Monitor.prototype.updateRows = function(queues) {
+  const playerStates = g_monitor_Manager.playerStates;
   let maxItems = 0;
-  for (let playerId of this.players) {
+  for (let playerId of g_monitor_Manager.players) {
     // Sanity check, just for the sake
     if (!queues[playerId])
       continue;
@@ -155,7 +110,7 @@ Monitor.prototype.updateRows = function(queues, maxPop = 0) {
     let playerState = playerStates[playerId];
     playerState.id = playerId;
 
-    this.rows[playerId].update(queues[playerId], playerState, this.showNames, maxPop);
+    this.rows[playerId].update(queues[playerId], this.showNames);
   }
 
   maxItems = Math.min(maxItems, 20);
@@ -176,11 +131,6 @@ Monitor.prototype.toggleVisibility = function() {
 }
 
 Monitor.prototype.show = function(mode = this.mode) {
-  if (this.players.length == 0) {
-    this.container.hidden = true;
-    return;
-  }
-
   this.mode = mode;
   this.active = true;
 
@@ -188,16 +138,15 @@ Monitor.prototype.show = function(mode = this.mode) {
   if (this.pos) {
     size.top = this.pos.top;
     size.left = this.pos.left;
-  } else {
-    size.top = this.singlePlayer() ? this.TopSingle : this.Top;
-  }
+  } else
+    size.top = g_monitor_Manager.singlePlayer() ? this.TopSingle : this.Top;
 
-  size.bottom = this.TitleHeight + MonitorRow.prototype.MarginTop + this.players.length * (
+  size.bottom = this.TitleHeight + MonitorRow.prototype.MarginTop + g_monitor_Manager.players.length * (
     MonitorRow.prototype.VerticalGap + MonitorRow.prototype.Height
   ) + size.top;
   this.container.size = size;
 
-  if (!this.singlePlayer()) {
+  if (!g_monitor_Manager.singlePlayer()) {
     this.title.caption = this.modes[this.mode].getLabel();
     this.titleContainer.tooltip = this.modes[this.mode].getTooltip();
     this.titleContainer.hidden = false;
@@ -206,18 +155,7 @@ Monitor.prototype.show = function(mode = this.mode) {
   this.container.hidden = false;
 }
 
-Monitor.prototype.singlePlayer = function() {
-  return this.players.length == 1 && this.players[0] == this.viewedPlayer;
-}
-
-Monitor.prototype.tooEarly = function() {
-  const now = Date.now();
-
-  return !(now - this.lastCheck > this.TickMillis && (this.lastCheck = now));
-}
-
 Monitor.prototype.TitleHeight = 20;
-Monitor.prototype.TickMillis = 500;
 Monitor.prototype.Top = 420;
 Monitor.prototype.TopSingle = 84;
 Monitor.prototype.Ranks = { 'b': 'Basic', 'a': 'Advanced', 'e': 'Elite' };

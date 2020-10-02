@@ -14,12 +14,13 @@ UnitsMode.prototype.getTemplateData = function(templateName) {
 }
 
 
-UnitsMode.prototype.getQueues = function(players, simulationState) {
-  const playerStates = simulationState.players;
+UnitsMode.prototype.getQueues = function() {
+  const playerStates = g_monitor_Manager.playerStates;
 
   let queues = {};
 
-  for (let playerId of players) {
+  for (let playerId in playerStates) {
+    playerId = parseInt(playerId);
     const playerState = playerStates[playerId];
     const unitCounts = playerState["typeCountsByClass"]["Unit"];
 

@@ -21,13 +21,10 @@ MonitorTopPanel.prototype = (function () {
         row.menu = Engine.GetGUIObjectByName(`MonitorTopPanelRow[${playerIndex}]`);
         row.name = Engine.GetGUIObjectByName(`MonitorTopPanelRow[${playerIndex}]Name`);
         row.label = Engine.GetGUIObjectByName(`MonitorTopPanelRow[${playerIndex}]PopLbl`);
-        row.label.caption = playerState.military + '/' + playerState.popCount + '/' + playerState.popLimit;
         row.name.caption = playerState.name;
         row.name.textcolor = playerState.brightenedColor;
         row.phase = Engine.GetGUIObjectByName(`MonitorTopPanelRow[${playerIndex}]Phase`);
-        row.phase.sprite = 'stretched:session/portraits/technologies/' + playerState.phase + '_phase.png';
         row.kd = Engine.GetGUIObjectByName(`MonitorTopPanelRow[${playerIndex}]Kd`);
-        row.kd.caption = playerState.enemyUnitsKilled + ' - ' + playerState.kd;
         row.menubg = Engine.GetGUIObjectByName(`MonitorTopPanelRow[${playerIndex}]Bg`);
         row.menubg.sprite = playerState.darkenedSprite;
         row.menu.size = `0 ${playerIndex * statsHeight} 100% ${(playerIndex + 1) * statsHeight - 4}`;
@@ -56,8 +53,6 @@ MonitorTopPanel.prototype = (function () {
           item.icon.size = iconSize;
           item.count.size = countSize;
           item.rate.size = rateSize;
-
-          item.count.caption = playerState.stats[resType].count;
           item.icon.sprite = 'stretched:session/icons/resources/'+ resType + '.png';
 
           row[resType] = item;
@@ -75,6 +70,8 @@ MonitorTopPanel.prototype = (function () {
       panelSize.bottom = rows[playerIndex - 1].menu.size.bottom + 10;
       panel.size = panelSize;
       panel.hidden = false;
+
+      this.update();
     },
 
     update: function () {
@@ -88,7 +85,7 @@ MonitorTopPanel.prototype = (function () {
           row[resType].rate.caption = '+' + playerState.stats[resType].rate;
         }
 
-        row.kd.caption = playerState.enemyUnitsKilled + ' - ' + playerState.kd;
+        row.kd.caption = (playerState.enemyUnitsKilled == 0 && playerState.kd == 0) ? '-' : playerState.enemyUnitsKilled + ' - ' + playerState.kd;
         row.label.caption = playerState.military + '/' + playerState.popCount + '/' + playerState.popLimit;
         row.phase.sprite = 'stretched:session/portraits/technologies/' + playerState.phase + '_phase.png';
 

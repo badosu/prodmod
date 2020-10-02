@@ -3,7 +3,7 @@ function darkenedSprite(color, factor = 0.25) {
 }
 
 function playerColor(player) {
-  return `${Math.round(player.color.r)} ${Math.round(player.color.g)} ${Math.round(player.color.b)}`;
+  return `${Math.round(player.color.r * 255)} ${Math.round(player.color.g * 255)} ${Math.round(player.color.b * 255)}`;
 }
 
 function darkenedColor(color, factor = 0.25) {

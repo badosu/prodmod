@@ -57,10 +57,11 @@ MonitorManager.prototype.update = function(forceUpdate = false, playerStates = n
     delete gatheredNow.vegetarianFood;
     for (let resType in gatheredNow) {
       const resGatheredNow = gatheredNow[resType];
+      const rate = (((resGatheredNow - gatheredThen[resType]) / deltaS) * 10).toFixed(0);
 
       pState.stats[resType] = {
         'count': playerState.resourceCounts[resType],
-        'rate': ((resGatheredNow - gatheredThen[resType]) / deltaS).toFixed(1)
+        'rate': isNaN(rate) ? '' : rate
       };
     }
 
@@ -79,7 +80,8 @@ MonitorManager.prototype.update = function(forceUpdate = false, playerStates = n
     pState.buildingsCapturedValue = sequences.buildingsCapturedValue[lastIndex];
     pState.unitsCapturedValue = sequences.unitsCapturedValue[lastIndex];
     pState.loot = sequences.lootCollected[lastIndex];
-    pState.kd = enemyUnitsKilled ? + ((enemyUnitsKilled / unitsLost).toFixed(2)) : 0;
+    const kd = enemyUnitsKilled ? + ((enemyUnitsKilled / unitsLost).toFixed(1)) : 0;
+    pState.kd = isFinite(kd) ? kd : '∞';
     pState.tradeIncome = sequences.tradeIncome[lastIndex];
     pState.tributesSent = sequences.tributesSent[lastIndex];
     pState.tributesReceived = sequences.tributesReceived[lastIndex];
@@ -96,8 +98,6 @@ MonitorManager.prototype.update = function(forceUpdate = false, playerStates = n
 
     this.playerStates[parseInt(playerId)] = pState;
   }
-
-  pp(this.playerStates);
 }
 
 MonitorManager.prototype.TickMillis = 500;
@@ -132,7 +132,8 @@ MonitorManager.prototype.newPlayerState = function(playerState) {
     'name': playerState.name.split(' ')[0],
     'civName': g_CivData[playerState.civ].Name,
     'civ': playerState.civ,
-    'color': playerState.color,
+    'color': playerColor(playerState),
+    'rgb': playerState.color,
     'brightenedSprite': brightenedSprite(playerState.color),
     'brightenedColor': brightenedColor(playerState.color),
     'darkenedSprite': darkenedSprite(playerState.color),

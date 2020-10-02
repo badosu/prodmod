@@ -1,7 +1,7 @@
 "use strict";
 
 let g_monitor_Monitor;
-//let g_monitor_TopPanel;
+let g_monitor_TopPanel;
 let g_monitor_Manager;
 
 const g_monitor_hotkeys = {
@@ -98,8 +98,8 @@ function monitor_init() {
 
   g_monitor_Manager = new MonitorManager(g_ViewedPlayer);
 
-  //if (shouldReplaceTopPanel)
-  //  replaceTopPanel();
+  if (shouldReplaceTopPanel)
+    replaceTopPanel();
 
   g_monitor_Monitor = new Monitor(enabled, showNames);
 }
@@ -119,11 +119,13 @@ autociv_patchApplyN("onTick", function(target, that, args) {
 
   g_monitor_Manager.update()
 
-  if (g_monitor_Monitor.active)
-    g_monitor_Monitor.update();
+  if (!g_monitor_Manager.tooEarly) {
+    if (g_monitor_Monitor.active)
+      g_monitor_Monitor.update();
 
-  //if (g_monitor_TopPanel)
-  //  g_monitor_TopPanel.update(false);
+    if (g_monitor_TopPanel)
+      g_monitor_TopPanel.update();
+  }
 
   g_monitor_Manager.tick()
 

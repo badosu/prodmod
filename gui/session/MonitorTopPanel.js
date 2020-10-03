@@ -90,7 +90,9 @@ MonitorTopPanel.prototype = (function () {
 
         for (let resType of resTypes) {
           row[resType].count.caption = playerState.stats[resType].count;
-          row[resType].rate.caption = '+' + playerState.stats[resType].rate;
+          row[resType].rate.caption = playerState.stats[resType].rate > 0 ?
+            fontColor('+' + playerState.stats[resType].rate, colorStat(resType, playerState.stats[resType].rate)) :
+            '-';
 
           let tooltip = '[font="' + g_ResourceTitleFont + '"]' + resourceNameFirstWord(resType) + '[/font]';
           tooltip += "\n" + resourceNameFirstWord(resType) + " amount (+ Amount/10s)";
@@ -101,7 +103,11 @@ MonitorTopPanel.prototype = (function () {
           row[resType].item.tooltip = tooltip;
         }
 
-        row.kdlbl.caption = (playerState.enemyUnitsKilled == 0 && playerState.kd == 0) ? '-' : playerState.enemyUnitsKilled + ' - ' + playerState.kd;
+        let killed = colorizeStat('enemyUnitsKilled', playerState.enemyUnitsKilled);
+        let kd = playerState.kd;
+        let kdlbl = isFinite(kd) ? kd : fontColor('∞', '153 153 255');
+        kdlbl = colorizeStat('kd', kdlbl)
+        row.kdlbl.caption = isNaN(kd) ? '-' : killed + ' - ' + kdlbl;
         let kdtooltip = '[font="' + g_ResourceTitleFont + '"]K/D[/font]\nKilled Units - K/D';
 
         if (g_monitor_Manager.singlePlayer()) {
@@ -114,12 +120,10 @@ MonitorTopPanel.prototype = (function () {
             const lastIndex = sequences.time.length - 1;
             const unitsLost = sequences.unitsLost.total[lastIndex];
             const enemyUnitsKilled = sequences.enemyUnitsKilled.total[lastIndex];
-            let kd = enemyUnitsKilled ? + ((enemyUnitsKilled / unitsLost).toFixed(1)) : 0;
-            kd = isFinite(kd) ? kd : '∞';
 
             kdtooltip += `\n${colorizePlayernameHelper("■", playerID) + " " + playerState.name}: `;
             if (enemyUnitsKilled > 0 || unitsLost > 0)
-              kdtooltip += `${enemyUnitsKilled}/${unitsLost} - ${kd}`;
+              kdtooltip += `${killed}/${unitsLost} - ${kdlbl}`;
             else 
               kdtooltip += `-`;
 
@@ -128,9 +132,9 @@ MonitorTopPanel.prototype = (function () {
 
         row.kd.tooltip = kdtooltip;
 
-        row.poplabel.caption = playerState.popCount + '/' +
+        row.poplabel.caption = colorizeStat('popCount', playerState.popCount) + '/' +
           fontColor(playerState.popLimit, playerState.trainingBlocked && isBlink ? g_PopulationAlertColor : g_DefaultPopulationColor) +
-          '/' + playerState.military;
+          '/' + colorizeStat('military', playerState.military);
 
         let tooltip = '[font="' + g_ResourceTitleFont + '"]Population[/font]\nPopulation / Limit / Military';
         if (g_monitor_Manager.singlePlayer())

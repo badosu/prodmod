@@ -6,6 +6,24 @@ function playerColor(player) {
   return `${Math.round(player.color.r * 255)} ${Math.round(player.color.g * 255)} ${Math.round(player.color.b * 255)}`;
 }
 
+function colorizeStat(stat, value) {
+  let color = colorStat(stat, value);
+
+  if (color) return fontColor(value, color);
+
+  return value;
+}
+
+function colorStat(stat, value) {
+  if (g_monitor_Manager.maximums[stat] == value)
+    return '153 153 255';
+
+  if (g_monitor_Manager.minimums[stat] == value)
+    return '204 102 0';
+
+  return 'white';
+}
+
 function darkenedColor(color, factor = 0.25) {
   let r = color.r * 255;
   let g = color.g * 255;

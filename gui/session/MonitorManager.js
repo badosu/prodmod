@@ -53,6 +53,14 @@ MonitorManager.prototype.update = function(forceUpdate = false, playerStates = n
 
   const now = g_SimState.timeElapsed;
 
+  let maximums = {};
+  let minimums = {};
+
+  for (let s of ['kd', 'popCount', 'enemyUnitsKilled', 'military', 'wood', 'food', 'metal', 'stone']) {
+    maximums[s] = -1;
+    minimums[s] = 1/0;
+  }
+
   for (let i = 0; i < this.players.length; i++) {
     const playerId = this.players[i];
     const playerState = playerStates[playerId];
@@ -72,11 +80,11 @@ MonitorManager.prototype.update = function(forceUpdate = false, playerStates = n
     delete gatheredNow.vegetarianFood;
     for (let resType in gatheredNow) {
       const resGatheredNow = gatheredNow[resType];
-      const rate = (((resGatheredNow - gatheredThen[resType]) / deltaS) * 10).toFixed(0);
+      const rate = Math.round(((resGatheredNow - gatheredThen[resType]) / deltaS) * 10);
 
       pState.stats[resType] = {
         'count': playerState.resourceCounts[resType],
-        'rate': isNaN(rate) ? '' : rate
+        'rate': isNaN(rate) ? 0 : rate
       };
     }
 
@@ -95,8 +103,7 @@ MonitorManager.prototype.update = function(forceUpdate = false, playerStates = n
     pState.buildingsCapturedValue = sequences.buildingsCapturedValue[lastIndex];
     pState.unitsCapturedValue = sequences.unitsCapturedValue[lastIndex];
     pState.loot = sequences.lootCollected[lastIndex];
-    const kd = enemyUnitsKilled ? + ((enemyUnitsKilled / unitsLost).toFixed(1)) : 0;
-    pState.kd = isFinite(kd) ? kd : '∞';
+    pState.kd = enemyUnitsKilled / unitsLost;
     pState.tradeIncome = sequences.tradeIncome[lastIndex];
     pState.tributesSent = sequences.tributesSent[lastIndex];
     pState.tributesReceived = sequences.tributesReceived[lastIndex];
@@ -111,6 +118,22 @@ MonitorManager.prototype.update = function(forceUpdate = false, playerStates = n
 	  	totalSold += sequences.resourcesSold[type][lastIndex];
     pState.totalSold = totalSold;
 
+    for (let s of ['kd', 'popCount', 'enemyUnitsKilled', 'military']) {
+      if (pState[s] >= maximums[s])
+        maximums[s] = pState[s]
+      if (pState[s] <= minimums[s])
+        minimums[s] = pState[s]
+    }
+
+    for (let s of ['wood', 'food', 'metal', 'stone']) {
+      if (pState.stats[s].rate >= maximums[s])
+        maximums[s] = pState.stats[s].rate
+      if (pState.stats[s].rate <= minimums[s])
+        minimums[s] = pState.stats[s].rate
+    }
+
+    this.maximums = maximums;
+    this.minimums = minimums;
     this.playerStates[parseInt(playerId)] = pState;
   }
 }

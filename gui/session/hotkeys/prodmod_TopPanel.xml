@@ -2,8 +2,8 @@
 
 <object type="text" name="MonitorTopPanel" size="0 0 0 0" textcolor="white" hidden="true">
   <repeat count="8" var="i">
-    <object name="MonitorTopPanelRow[i]" type="text" size="0 0 24 28" sprite="color: 0 0 0 200">
-      <object name="MonitorTopPanelRow[i]Phase" type="image" size="0 0 24 24" />
+    <object name="MonitorTopPanelRow[i]" type="text" size="0 0 24 28" sprite="color: 0 0 0 200" hidden="true">
+      <object name="MonitorTopPanelRow[i]Phase" type="button" size="0 0 24 24" />
       <object name="MonitorTopPanelRow[i]Name" size="26 0 126 24" type="text" text_valign="center" font="sans-bold-stroke-14"/>
       <repeat count="4" var="j">
         <object name="MonitorTopPanelRow[i]Item[j]" size="0 0 60 24" type="button" style="resourceCounter" tooltip_style="sessionToolTipBold">

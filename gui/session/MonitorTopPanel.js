@@ -102,7 +102,31 @@ MonitorTopPanel.prototype = (function () {
         }
 
         row.kdlbl.caption = (playerState.enemyUnitsKilled == 0 && playerState.kd == 0) ? '-' : playerState.enemyUnitsKilled + ' - ' + playerState.kd;
-        row.kd.tooltip = '[font="' + g_ResourceTitleFont + '"]K/D[/font]\nKilled Units - K/D';
+        let kdtooltip = '[font="' + g_ResourceTitleFont + '"]K/D[/font]\nKilled Units - K/D';
+
+        if (g_monitor_Manager.singlePlayer()) {
+          for (let playerID in g_monitor_Manager.viewablePlayerStates) {
+            if (playerID == g_monitor_Manager.viewedPlayer) continue;
+
+            const playerState = g_monitor_Manager.viewablePlayerStates[playerID];
+
+            const sequences = playerState.sequences;
+            const lastIndex = sequences.time.length - 1;
+            const unitsLost = sequences.unitsLost.total[lastIndex];
+            const enemyUnitsKilled = sequences.enemyUnitsKilled.total[lastIndex];
+            let kd = enemyUnitsKilled ? + ((enemyUnitsKilled / unitsLost).toFixed(1)) : 0;
+            kd = isFinite(kd) ? kd : '∞';
+
+            kdtooltip += `\n${colorizePlayernameHelper("■", playerID) + " " + playerState.name}: `;
+            if (enemyUnitsKilled > 0 || unitsLost > 0)
+              kdtooltip += `${enemyUnitsKilled}/${unitsLost} - ${kd}`;
+            else 
+              kdtooltip += `-`;
+
+          }
+        }
+
+        row.kd.tooltip = kdtooltip;
 
         row.poplabel.caption = playerState.popCount + '/' +
           fontColor(playerState.popLimit, playerState.trainingBlocked && isBlink ? g_PopulationAlertColor : g_DefaultPopulationColor) +
@@ -134,7 +158,7 @@ MonitorTopPanel.prototype.updateLayout = function () {
   viewPlayer.hidden = !g_IsObserver && !g_DevSettings.changePerspective;
   diplomacy.hidden = !isPlayer;
   trade.hidden = !isPlayer;
-  optionFollowPlayer.hidden = !isPlayer;
+  optionFollowPlayer.hidden = !(g_IsObserver && isPlayer);
 
   let sizes = [[optionFollowPlayer, 22], [trade, 28], [diplomacy, 28], [objectives, 28], [gameSpeed, 28], [viewPlayer, 200]];
   let remainingWidth = sizes.reduce((v, c) => v + (c[0].hidden ? 0 : c[1]), 0) + 164;

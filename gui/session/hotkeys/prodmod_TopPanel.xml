@@ -16,13 +16,13 @@
           </object>
         </object>
       </repeat>
-      <object name="MonitorTopPanelRow[i]Pop" size="486 0 590 24" type="button" style="resourceCounter" tooltip_style="sessionToolTipBold">
+      <object name="MonitorTopPanelRow[i]Pop" size="482 0 582 24" type="button" style="resourceCounter" tooltip_style="sessionToolTipBold">
         <object name="MonitorTopPanelRow[i]PopIcon" type="image" ghost="true" size="0 0 24 24" sprite="stretched:session/icons/resources/population.png" />
-        <object name="MonitorTopPanelRow[i]PopLbl" type="text" ghost="true" size="20 0 84 24" textcolor="white" font="sans-stroke-14" text_valign="center" />
+        <object name="MonitorTopPanelRow[i]PopLbl" type="text" ghost="true" size="20 0 100 24" textcolor="white" font="sans-stroke-14" text_valign="center" />
       </object>
-      <object name="MonitorTopPanelRow[i]Kd" size="590 0 680 24" type="button" style="resourceCounter" tooltip_style="sessionToolTipBold">
+      <object name="MonitorTopPanelRow[i]Kd" size="582 0 692 24" type="button" style="resourceCounter" tooltip_style="sessionToolTipBold">
         <object name="MonitorTopPanelRow[i]KdIcon" type="image" ghost="true" sprite="stretched:session/icons/stances/aggressive.png" size="0 0 24 24" />
-        <object name="MonitorTopPanelRow[i]KdLbl" type="text" ghost="true" size="20 0 70 24" textcolor="white" font="sans-stroke-14" text_valign="center" />
+        <object name="MonitorTopPanelRow[i]KdLbl" type="text" ghost="true" size="20 0 110 24" textcolor="white" font="sans-stroke-14" text_valign="center" />
       </object>
       <object name="MonitorTopPanelRow[i]Bg" type="image" size="0 24 100% 28" />
     </object>

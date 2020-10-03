@@ -47,12 +47,12 @@ MonitorTopPanel.prototype = (function () {
           let rateSize = item.rate.size;
           let itemSize = item.item.size;
 
-          itemSize.left = 126 + itemIndex * (24 + 29 + 32 + 5);
+          itemSize.left = 126 + itemIndex * (24 + 33 + 28 + 3);
           iconSize.right = iconSize.left + 24;
-          countSize.left = iconSize.right - 4;
-          countSize.right = countSize.left + 33;
-          rateSize.left = countSize.right + 3;
-          rateSize.right = rateSize.left + 32;
+          countSize.left = iconSize.right - 7;
+          countSize.right = countSize.left + 40;
+          rateSize.left = countSize.right - 2;
+          rateSize.right = rateSize.left + 34;
           itemSize.right = itemSize.left + rateSize.right;
 
           item.item.size = itemSize;

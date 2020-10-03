@@ -10,6 +10,7 @@ MonitorTopPanel.prototype = (function () {
     constructor: MonitorTopPanel,
 
     createMenu: function () {
+      this.container = Engine.GetGUIObjectByName('MonitorTopPanel');
       var statsHeight = 28;
 
       let playerIndex = 0;
@@ -70,12 +71,11 @@ MonitorTopPanel.prototype = (function () {
         playerIndex++;
       }
 
-      const panel = Engine.GetGUIObjectByName('MonitorTopPanel');
-      let panelSize = panel.size;
+      let panelSize = this.container.size;
       panelSize.right = rows[0].kd.size.right;
       panelSize.bottom = rows[playerIndex - 1].menu.size.bottom;
-      panel.size = panelSize;
-      panel.hidden = false;
+      this.container.size = panelSize;
+      this.container.hidden = false;
 
       this.update();
     },
@@ -185,4 +185,14 @@ MonitorTopPanel.prototype.updateLayout = function () {
   Engine.GetGUIObjectByName("resourceCounts").hidden = true;
   Engine.GetGUIObjectByName("civIcon").hidden = true;
   Engine.GetGUIObjectByName("alphaLabel").hidden = true;
+
+  let chatPanel = Engine.GetGUIObjectByName("chatPanel");
+  chatPanel.size = `0 70% 50%-509 100%-10`;
+  let entityPanel = Engine.GetGUIObjectByName("panelEntityPanel");
+
+  const showRelicsHero = Engine.ConfigDB_GetValue("user", "monitor.topPanel.showRelicsHero") == "true";
+  if (!showRelicsHero)
+    entityPanel.hidden = true;
+  else if (this.container)
+    entityPanel.size.top = this.container.size.bottom;
 };

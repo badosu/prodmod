@@ -8,5 +8,6 @@
 	"monitor.replaceTopPanel": "true",
 	"monitor.enabled": "false",
 	"monitor.showNames": "true",
-	"monitor.showPhase": "false"
+	"monitor.showPhase": "false",
+	"monitor.topPanel.showRelicsHero": "true"
 }

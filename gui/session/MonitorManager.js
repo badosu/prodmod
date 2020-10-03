@@ -7,6 +7,7 @@ function MonitorManager(viewedPlayer) {
   this.viewedPlayer = viewedPlayer;
   this.lastCheck = Date.now();
   this.tooEarly = false;
+  this.phaseTechs = null;
 
   let playerStates = this.simulationState.players;
   for (let playerId in playerStates) {
@@ -26,15 +27,29 @@ MonitorManager.prototype.update = function(forceUpdate = false, playerStates = n
 
   playerStates = playerStates || Engine.GuiInterfaceCall('GetExtendedSimulationState').players;
   this.players = [];
+  this.viewablePlayerStates = {};
   this.playerStates = {};
+  this.phaseTechs = null;
 
   if (!(playerStates[this.viewedPlayer] && playerStates[this.viewedPlayer].state == "active")) {
     for (let i = 1; i < playerStates.length; i++)
       if (playerStates[i].state === "active" || playerStates[i].state === "won") {
         this.players.push(i);
       }
-  } else
+  } else {
     this.players.push(this.viewedPlayer);
+
+    for (let playerID in playerStates) {
+      const playerState = playerStates[playerID];
+
+      if (playerID != 0 &&
+        playerID != this.viewedPlayer &&
+        playerState.state != "defeated" &&
+        (playerStates[this.viewedPlayer].hasSharedLos &&
+          playerState.isMutualAlly[this.viewedPlayer]))
+        this.viewablePlayerStates[playerID] = playerState;
+    }
+  }
 
   const now = g_SimState.timeElapsed;
 
@@ -138,6 +153,7 @@ MonitorManager.prototype.newPlayerState = function(playerState) {
     'brightenedColor': brightenedColor(playerState.color),
     'darkenedSprite': darkenedSprite(playerState.color),
     'typeCountsByClass': playerState.typeCountsByClass,
+    'trainingBlocked': playerState.trainingBlocked,
     'popLimit': playerState.popLimit,
     'popCount': playerState.popCount,
     'popMax': playerState.popMax,
@@ -148,6 +164,13 @@ MonitorManager.prototype.newPlayerState = function(playerState) {
     'hasCC': Object.keys(playerState.typeCountsByClass.CivCentre || {})[0],
     'military': playerState.classCounts.Soldier || 0,
   };
+}
+
+MonitorManager.prototype.getPhaseTechs = function() {
+  if (!this.phaseTechs)
+    this.phaseTechs = Engine.GuiInterfaceCall("monitor_GetPhaseTechs", this.players);
+
+  return this.phaseTechs;
 }
 
 MonitorManager.prototype.noPlayers = function() {

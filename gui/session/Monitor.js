@@ -12,6 +12,7 @@ function Monitor(active = true, showNames = true, mode = 0, modes = [UnitsMode, 
     this.pos = null;
 
   this.scale = +Engine.ConfigDB_GetValue("user", "gui.scale");
+  this.showPhase = Engine.ConfigDB_GetValue("user", "monitor.showPhase") == "true";
 
   this.modes = modes.map((m) => {
     let instance = Object.create(m.prototype);
@@ -82,15 +83,9 @@ Monitor.prototype.update = function() {
     this.reset();
 
   const queues = this.modes[this.mode].getQueues();
-  const phaseTechs = Engine.GuiInterfaceCall("monitor_GetPhaseTechs", g_monitor_Manager.players);
 
-  for (let playerId in phaseTechs) {
-    const phaseTech = phaseTechs[playerId];
-    if (phaseTech && queues[playerId]) {
-      phaseTech.tooltip = templateTooltip(g_monitor_Manager.playerStates[playerId], phaseTech);
-      queues[playerId].unshift(phaseTech)
-    }
-  }
+  if (this.showPhase)
+    this.addPhaseToQueues(queues);
 
   this.updateRows(queues);
 }
@@ -153,6 +148,18 @@ Monitor.prototype.show = function(mode = this.mode) {
   }
 
   this.container.hidden = false;
+}
+
+Monitor.prototype.addPhaseToQueues = function(queues) {
+  const phaseTechs = g_monitor_Manager.getPhaseTechs();
+
+  for (let playerId in phaseTechs) {
+    const phaseTech = phaseTechs[playerId];
+    if (phaseTech && queues[playerId]) {
+      phaseTech.tooltip = templateTooltip(g_monitor_Manager.playerStates[playerId], phaseTech);
+      queues[playerId].unshift(phaseTech)
+    }
+  }
 }
 
 Monitor.prototype.TitleHeight = 20;

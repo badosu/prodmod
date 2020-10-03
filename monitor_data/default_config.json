@@ -7,5 +7,6 @@
 	"hotkey.monitor.quickShowTech": "Space+e",
 	"monitor.replaceTopPanel": "true",
 	"monitor.enabled": "false",
-	"monitor.showNames": "true"
+	"monitor.showNames": "true",
+	"monitor.showPhase": "false"
 }

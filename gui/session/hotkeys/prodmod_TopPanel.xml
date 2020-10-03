@@ -1,26 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<object type="text" name="MonitorTopPanel" size="0 0 0 0" textcolor="white" hidden="true" z="90">
+<object type="text" name="MonitorTopPanel" size="0 0 0 0" textcolor="white" hidden="true">
   <repeat count="8" var="i">
     <object name="MonitorTopPanelRow[i]" type="text" size="0 0 24 28" sprite="color: 0 0 0 200">
       <object name="MonitorTopPanelRow[i]Phase" type="image" size="0 0 24 24" />
       <object name="MonitorTopPanelRow[i]Name" size="26 0 126 24" type="text" text_valign="center" font="sans-bold-stroke-14"/>
       <repeat count="4" var="j">
-        <object name="MonitorTopPanelRow[i]Item[j]" size="0 0 60 24" type="text">
+        <object name="MonitorTopPanelRow[i]Item[j]" size="0 0 60 24" type="button" style="resourceCounter" tooltip_style="sessionToolTipBold">
           <object name="MonitorTopPanelRow[i]Item[j]Icon" type="image" ghost="true" size ="0 1 0 23" />
-          <object name="MonitorTopPanelRow[i]Item[j]Count" size="0 0 0 24" textcolor="white" type="button"
-            font="sans-bold-stroke-14" text_align="left" text_valign="center">
+          <object name="MonitorTopPanelRow[i]Item[j]Count" size="0 0 0 24" textcolor="white" type="text"
+            font="sans-bold-stroke-14" text_align="left" text_valign="center" ghost="true">
           </object>
-          <object name="MonitorTopPanelRow[i]Item[j]Rate" size="0 0 0 22" textcolor="white" type="button"
-            font="sans-stroke-14" text_align="left" text_valign="center">
+          <object name="MonitorTopPanelRow[i]Item[j]Rate" size="0 0 0 22" textcolor="white" type="text"
+            font="sans-stroke-14" text_align="left" text_valign="center" ghost="true">
           </object>
         </object>
       </repeat>
-      <object name="MonitorTopPanelRow[i]Pop" type="image" sprite="stretched:session/icons/resources/population.png" size="486 0 510 24" />
-      <object name="MonitorTopPanelRow[i]PopLbl" type="text" size="506 0 590 24" textcolor="white" font="sans-stroke-14" text_valign="center" />
-      <object name="MonitorTopPanelRow[i]KdIcon" type="image" sprite="stretched:session/icons/stances/aggressive.png" size="590 0 614 24" />
-      <object name="MonitorTopPanelRow[i]Kd" type="text" size="610 0 680 24" textcolor="white" font="sans-stroke-14" text_valign="center" />
-      <object name="MonitorTopPanelRow[i]Bg" type="text" size="0 24 100% 28" />
+      <object name="MonitorTopPanelRow[i]Pop" size="486 0 590 24" type="button" style="resourceCounter" tooltip_style="sessionToolTipBold">
+        <object name="MonitorTopPanelRow[i]PopIcon" type="image" ghost="true" size="0 0 24 24" sprite="stretched:session/icons/resources/population.png" />
+        <object name="MonitorTopPanelRow[i]PopLbl" type="text" ghost="true" size="20 0 84 24" textcolor="white" font="sans-stroke-14" text_valign="center" />
+      </object>
+      <object name="MonitorTopPanelRow[i]Kd" size="590 0 680 24" type="button" style="resourceCounter" tooltip_style="sessionToolTipBold">
+        <object name="MonitorTopPanelRow[i]KdIcon" type="image" ghost="true" sprite="stretched:session/icons/stances/aggressive.png" size="0 0 24 24" />
+        <object name="MonitorTopPanelRow[i]KdLbl" type="text" ghost="true" size="20 0 70 24" textcolor="white" font="sans-stroke-14" text_valign="center" />
+      </object>
+      <object name="MonitorTopPanelRow[i]Bg" type="image" size="0 24 100% 28" />
     </object>
   </repeat>
 </object>

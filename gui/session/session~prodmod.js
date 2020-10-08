@@ -53,6 +53,8 @@ function replaceTopPanel() {
   g_monitor_TopPanel = new MonitorTopPanel();
   g_monitor_TopPanel.updateLayout();
 
+  g_monitor_Manager.addPlayersChangedHandler(g_monitor_TopPanel.reset.bind(g_monitor_TopPanel));
+
   autociv_patchApplyN("updateTopPanel", g_monitor_TopPanel.updateLayout);
   autociv_patchApplyN("updatePlayerDisplay", function() {});
 }
@@ -68,6 +70,7 @@ function monitor_init() {
     replaceTopPanel();
 
   g_monitor_Monitor = new Monitor(enabled, showNames);
+  g_monitor_Manager.addPlayersChangedHandler(g_monitor_Monitor.reset.bind(g_monitor_Monitor));
 }
 
 // TODO: Use a24 registerPlayersInitHandler

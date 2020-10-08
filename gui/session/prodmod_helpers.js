@@ -16,7 +16,7 @@ function colorizeStat(stat, value) {
 
 function colorStat(stat, value) {
   if (g_monitor_Manager.maximums[stat] == value)
-    return '153 153 255';
+    return '204 204 0';
 
   if (g_monitor_Manager.minimums[stat] == value)
     return '204 102 0';

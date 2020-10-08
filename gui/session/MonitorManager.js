@@ -1,6 +1,7 @@
 function MonitorManager(viewedPlayer) {
   this.simulationState = Engine.GuiInterfaceCall('GetExtendedSimulationState');
 
+  this.playersChangedHandlers = [];
   this.players = [];
   this.playersRes = {};
   this.playerStates = {};
@@ -26,18 +27,23 @@ MonitorManager.prototype.update = function(forceUpdate = false, playerStates = n
     return;
 
   playerStates = playerStates || Engine.GuiInterfaceCall('GetExtendedSimulationState').players;
-  this.players = [];
   this.viewablePlayerStates = {};
   this.playerStates = {};
   this.phaseTechs = null;
 
-  if (!(playerStates[this.viewedPlayer] && playerStates[this.viewedPlayer].state == "active")) {
-    for (let i = 1; i < playerStates.length; i++)
-      if (playerStates[i].state === "active" || playerStates[i].state === "won") {
-        this.players.push(i);
-      }
+  let activePlayers = [];
+
+  for (let i = 1; i < playerStates.length; i++)
+    if (playerStates[i].state === "active" || playerStates[i].state === "won")
+      activePlayers.push(i);
+
+  // Shit array comparison
+  const playersChanged = JSON.stringify(activePlayers) == JSON.stringify(this.players);
+
+  if (g_IsObserver) {
+    this.players = activePlayers;
   } else {
-    this.players.push(this.viewedPlayer);
+    this.players = [this.viewedPlayer];
 
     for (let playerID in playerStates) {
       const playerState = playerStates[playerID];
@@ -136,6 +142,12 @@ MonitorManager.prototype.update = function(forceUpdate = false, playerStates = n
     this.minimums = minimums;
     this.playerStates[parseInt(playerId)] = pState;
   }
+
+  // Reset Monitor components when a player is not active anymore
+  // TODO: Use a24 registerPlayersFinishedHandler
+  if (playersChanged)
+    for (let handler of this.playersChangedHandlers)
+      handler();
 }
 
 MonitorManager.prototype.TickMillis = 500;
@@ -199,8 +211,14 @@ MonitorManager.prototype.getPhaseTechs = function() {
 MonitorManager.prototype.noPlayers = function() {
   return this.players.length == 0;
 }
+MonitorManager.prototype.isDefeated = function() {
+  !g_IsObserver && this.playerStates[this.viewedPlayer].state == 'defeated';
+}
 MonitorManager.prototype.Phases = { 'village': 'I', 'town': 'II', 'city': 'III' };
 MonitorManager.prototype.tick = function() {
   const tickNow = Date.now();
   this.tooEarly = !(tickNow - this.lastCheck > this.TickMillis && (this.lastCheck = tickNow));
+}
+MonitorManager.prototype.addPlayersChangedHandler = function(handler) {
+  this.playersChangedHandlers.push(handler);
 }

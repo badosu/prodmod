@@ -34,7 +34,7 @@ Monitor.prototype.setPos = function(x, y) {
 }
 
 Monitor.prototype.reset = function() {
-  if (!g_monitor_Manager.isObserver())
+  if (g_IsObserver)
     this.showNames = false;
 
   // Hide previous rows if reset from previous state
@@ -77,11 +77,6 @@ Monitor.prototype.update = function() {
     return;
   }
 
-  // Reset Monitor when a player is not active anymore
-  // TODO: Use a24 registerPlayersFinishedHandler
-  if (g_monitor_Manager.playerNotActive() || g_monitor_Manager.someoneNotActive())
-    this.reset();
-
   const queues = this.modes[this.mode].getQueues();
 
   if (this.showPhase)
@@ -95,8 +90,7 @@ Monitor.prototype.updateRows = function(queues) {
   let maxItems = 0;
   for (let playerId of g_monitor_Manager.players) {
     // Sanity check, just for the sake
-    if (!queues[playerId])
-      continue;
+    if (!queues[playerId] || !this.rows[playerId]) continue;
 
     const queueLength = queues[playerId].length;
     if (queueLength > maxItems)
@@ -141,7 +135,7 @@ Monitor.prototype.show = function(mode = this.mode) {
   ) + size.top;
   this.container.size = size;
 
-  if (!g_monitor_Manager.singlePlayer()) {
+  if (g_IsObserver) {
     this.title.caption = this.modes[this.mode].getLabel();
     this.titleContainer.tooltip = this.modes[this.mode].getTooltip();
     this.titleContainer.hidden = false;

@@ -128,7 +128,7 @@ Monitor.prototype.show = function(mode = this.mode) {
     size.top = this.pos.top;
     size.left = this.pos.left;
   } else
-    size.top = g_monitor_Manager.singlePlayer() ? this.TopSingle : this.Top;
+    size.top = g_IsObserver ? this.Top : this.TopSingle;
 
   size.bottom = this.TitleHeight + MonitorRow.prototype.MarginTop + g_monitor_Manager.players.length * (
     MonitorRow.prototype.VerticalGap + MonitorRow.prototype.Height

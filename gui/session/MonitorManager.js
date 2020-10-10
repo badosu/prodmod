@@ -89,7 +89,7 @@ MonitorManager.prototype.update = function(forceUpdate = false, playerStates = n
       const rate = Math.round(((resGatheredNow - gatheredThen[resType]) / deltaS) * 10);
 
       pState.stats[resType] = {
-        'count': playerState.resourceCounts[resType],
+        'count': Math.floor(playerState.resourceCounts[resType]),
         'rate': isNaN(rate) ? 0 : rate
       };
     }
@@ -140,6 +140,17 @@ MonitorManager.prototype.update = function(forceUpdate = false, playerStates = n
 
     this.maximums = maximums;
     this.minimums = minimums;
+
+    if (pState.hasCC) {
+      const ccEntity = Engine.GuiInterfaceCall('monitor_GetTemplateEntities', [playerId, [pState.hasCC]])[0];
+
+      pState.moveToCC = function() {
+        if (ccEntity)
+          Engine.CameraMoveTo(ccEntity.position.x, ccEntity.position.z);
+      };
+    } else
+      pState.moveToCC = () => {};
+
     this.playerStates[parseInt(playerId)] = pState;
   }
 
@@ -150,37 +161,11 @@ MonitorManager.prototype.update = function(forceUpdate = false, playerStates = n
       handler();
 }
 
-MonitorManager.prototype.TickMillis = 500;
-MonitorManager.prototype.IncomeRateBufferSize = 25;
-
-MonitorManager.prototype.isObserver = function() {
-  const playerState = this.playerState();
-
-  return !(playerState && playerState.state == "active");
-}
-
-MonitorManager.prototype.playerState = function() {
-  return this.singlePlayer() && this.playerStates[this.viewedPlayer];
-}
-
-MonitorManager.prototype.singlePlayer = function() {
-  return this.players.length == 1 && this.players[0] == this.viewedPlayer;
-}
-
-MonitorManager.prototype.playerNotActive = function() {
-  return this.singlePlayer() && this.playerState().state != "active";
-}
-
-MonitorManager.prototype.someoneNotActive = function() {
-  const activePlayers = this.players.filter(i => this.playerStates[i].civ != "gaia" && this.playerStates[i].state == "active");
-
-  return (activePlayers.length !== this.players.length);
-}
-
 MonitorManager.prototype.newPlayerState = function(playerState) {
   return {
     'name': playerState.name.split(' ')[0],
     'civName': g_CivData[playerState.civ].Name,
+    'civEmblem': g_CivData[playerState.civ].Emblem,
     'civ': playerState.civ,
     'color': playerColor(playerState),
     'rgb': playerState.color,
@@ -211,14 +196,16 @@ MonitorManager.prototype.getPhaseTechs = function() {
 MonitorManager.prototype.noPlayers = function() {
   return this.players.length == 0;
 }
-MonitorManager.prototype.isDefeated = function() {
-  !g_IsObserver && this.playerStates[this.viewedPlayer].state == 'defeated';
-}
-MonitorManager.prototype.Phases = { 'village': 'I', 'town': 'II', 'city': 'III' };
+
 MonitorManager.prototype.tick = function() {
   const tickNow = Date.now();
   this.tooEarly = !(tickNow - this.lastCheck > this.TickMillis && (this.lastCheck = tickNow));
 }
+
 MonitorManager.prototype.addPlayersChangedHandler = function(handler) {
   this.playersChangedHandlers.push(handler);
 }
+
+MonitorManager.prototype.Phases = { 'village': 'I', 'town': 'II', 'city': 'III' };
+MonitorManager.prototype.TickMillis = 500;
+MonitorManager.prototype.IncomeRateBufferSize = 25;

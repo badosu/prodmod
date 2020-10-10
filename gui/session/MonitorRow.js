@@ -8,10 +8,10 @@ function MonitorRow(rowIndex, playerId) {
   const indTeam = Engine.GetGUIObjectByName(`MonitorRow[${rowIndex}]IndTeam`);
   if (!playerState.hideTeam)
     indTeam.caption = playerState.team + 1;
-  indIcon.sprite = "stretched:" + g_CivData[playerState.civ].Emblem;
+  indIcon.sprite = "stretched:" + playerState.civEmblem;
   this.label = Engine.GetGUIObjectByName(`MonitorRow[${rowIndex}]Label`);
   let sizeTop = rowIndex * (this.Height + this.VerticalGap) + this.MarginTop;
-  if (g_monitor_Manager.isObserver())
+  if (g_IsObserver)
     sizeTop += Monitor.prototype.TitleHeight;
 
   row.size = `0 ${sizeTop} 100% ${sizeTop + this.Height}`;
@@ -28,19 +28,9 @@ function MonitorRow(rowIndex, playerId) {
 
 MonitorRow.prototype.update = function(entities, displayLabel) {
   const playerState = g_monitor_Manager.playerStates[this.playerId];
-  const ccTemplate = playerState.hasCC;
-  if (ccTemplate) {
-    const ccEntity = Engine.GuiInterfaceCall('monitor_GetTemplateEntities', [playerState.id, [ccTemplate]])[0];
 
-    if (ccEntity) {
-      const moveToCC = function() {
-        Engine.CameraMoveTo(ccEntity.position.x, ccEntity.position.z);
-      };
-
-      this.ind.onPress = moveToCC;
-      this.label.onPress = moveToCC;
-    }
-  }
+  this.ind.onPress = playerState.moveToCC;
+  this.label.onPress = playerState.moveToCC;
 
   let tooltip = `${formattedPlayerName(playerState)} - ${playerState.civName}\n`;
   tooltip += `${headerFont('Economy')} - Phase ${headerFont(playerState.phaseName)}\n`;

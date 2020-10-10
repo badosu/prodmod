@@ -23,6 +23,14 @@ MonitorTopPanel.prototype.reset = function () {
 
     let row = { res: {} }
 
+    row.ind = Engine.GetGUIObjectByName(`MonitorTopPanelRow[${playerIndex}]Ind`);
+    row.ind.sprite = playerState.darkenedSprite;
+    Engine.GetGUIObjectByName(`MonitorTopPanelRow[${playerIndex}]IndIcon`).sprite = 'stretched:' + playerState.civEmblem;
+    if (playerState.team > -1 && g_monitor_Manager.players.length > 2)
+      Engine.GetGUIObjectByName(`MonitorTopPanelRow[${playerIndex}]IndTeam`).caption = playerState.team + 1;
+
+    row.progress = Engine.GetGUIObjectByName(`MonitorTopPanelRow[${playerIndex}]Progress`);
+    row.progress.sprite = playerState.brightenedSprite;
     row.menu = Engine.GetGUIObjectByName(`MonitorTopPanelRow[${playerIndex}]`);
     row.name = Engine.GetGUIObjectByName(`MonitorTopPanelRow[${playerIndex}]Name`);
     row.pop = Engine.GetGUIObjectByName(`MonitorTopPanelRow[${playerIndex}]Pop`);
@@ -37,6 +45,7 @@ MonitorTopPanel.prototype.reset = function () {
     row.menu.size = `0 ${playerIndex * this.StatsHeight} 100% ${(playerIndex + 1) * this.StatsHeight - 4}`;
 
     let itemIndex = 0;
+    let currentLeft = 250;
     for (let resType of this.ResTypes) {
       const partialName = `MonitorTopPanelRow[${playerIndex}]Item[${itemIndex}]`;
 
@@ -52,13 +61,13 @@ MonitorTopPanel.prototype.reset = function () {
       let rateSize = item.rate.size;
       let itemSize = item.item.size;
 
-      itemSize.left = 126 + itemIndex * (24 + 33 + 28 + 3);
+      itemSize.left = currentLeft
       iconSize.right = iconSize.left + 24;
       countSize.left = iconSize.right - 7;
       countSize.right = countSize.left + 40;
       rateSize.left = countSize.right - 2;
       rateSize.right = rateSize.left + 34;
-      itemSize.right = itemSize.left + rateSize.right;
+      itemSize.right = currentLeft = itemSize.left + rateSize.right;
 
       item.item.size = itemSize;
       item.icon.size = iconSize;
@@ -102,14 +111,26 @@ MonitorTopPanel.prototype.update = function () {
 
     let playerState = g_monitor_Manager.playerStates[playerId];
 
+    const phaseProgress = g_monitor_Manager.getPhaseTechs()[playerId];
+    const sizePrg = row.progress.size;
+    if (phaseProgress.progress) {
+      row.progress.hidden = false;
+      sizePrg.right = sizePrg.left + 24 * phaseProgress.progress;
+      row.progress.size = sizePrg;
+    } else
+      row.progress.hidden = true;
+
+    row.phase.onPress = playerState.moveToCC;
+    row.ind.onPress = playerState.moveToCC;
+
     for (let resType of this.ResTypes) {
       row[resType].count.caption = playerState.stats[resType].count;
       row[resType].rate.caption = fontColor('+' + playerState.stats[resType].rate, colorStat(resType, playerState.stats[resType].rate));
 
-      let tooltip = '[font="' + g_ResourceTitleFont + '"]' + resourceNameFirstWord(resType) + '[/font]';
+      let tooltip = setStringTags(resourceNameFirstWord(resType), { font: g_ResourceTitleFont });
       tooltip += "\n" + resourceNameFirstWord(resType) + " amount (+ Amount/10s)";
 
-      if (g_monitor_Manager.singlePlayer())
+      if (!g_IsObserver)
         tooltip += getAllyStatTooltip(resType, g_monitor_Manager.viewablePlayerStates, -1);
 
       row[resType].item.tooltip = tooltip;
@@ -148,12 +169,12 @@ MonitorTopPanel.prototype.update = function () {
 
     row.kd.tooltip = kdtooltip;
 
-    row.poplabel.caption = headerFont(colorizeStat('popCount', playerState.popCount)) + '/' +
+    row.poplabel.caption = setStringTags(colorizeStat('popCount', playerState.popCount), { font: 'sans-bold-stroke-14' }) + '/' +
       fontColor(playerState.popLimit, playerState.trainingBlocked && isBlink ? g_PopulationAlertColor : g_DefaultPopulationColor) +
       '/' + colorizeStat('military', playerState.military);
 
     let tooltip = '[font="' + g_ResourceTitleFont + '"]Population[/font]\nPopulation / Limit / Military';
-    if (g_monitor_Manager.singlePlayer())
+    if (!g_IsObserver)
       tooltip += getAllyStatTooltip('pop', g_monitor_Manager.viewablePlayerStates, -1);
     row.pop.tooltip = tooltip;
 

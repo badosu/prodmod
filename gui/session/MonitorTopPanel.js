@@ -1,6 +1,6 @@
 function MonitorTopPanel() {
   this.container = Engine.GetGUIObjectByName('MonitorTopPanel');
-  this.entityPanel = Engine.GetGUIObjectByName("panelEntityPanel");
+  this.entityPanel = Engine.GetGUIObjectByName("panelEntityButtons");
   this.showRelicsHero = Engine.ConfigDB_GetValue("user", "monitor.topPanel.showRelicsHero") == "true";
   this.rows = [];
 
@@ -127,11 +127,11 @@ MonitorTopPanel.prototype.update = function () {
       row[resType].count.caption = playerState.stats[resType].count;
       row[resType].rate.caption = fontColor('+' + playerState.stats[resType].rate, colorStat(resType, playerState.stats[resType].rate));
 
-      let tooltip = setStringTags(resourceNameFirstWord(resType), { font: g_ResourceTitleFont });
+      let tooltip = setStringTags(resourceNameFirstWord(resType), CounterManager.ResourceTitleTags);
       tooltip += "\n" + resourceNameFirstWord(resType) + " amount (+ Amount/10s)";
 
-      if (!g_IsObserver)
-        tooltip += getAllyStatTooltip(resType, g_monitor_Manager.viewablePlayerStates, -1);
+      //if (!g_IsObserver)
+      //  tooltip += getAllyStatTooltip(resType, g_monitor_Manager.viewablePlayerStates, -1);
 
       row[resType].item.tooltip = tooltip;
     }
@@ -143,7 +143,7 @@ MonitorTopPanel.prototype.update = function () {
       kdlbl = isFinite(kd) ? fontColor(kd.toFixed(1), colorStat('kd', kd)) : fontColor('∞', '153 153 255');
       kdlbl = `${killed} ${kdlbl}`;
     row.kdlbl.caption = kdlbl;
-    let kdtooltip = '[font="' + g_ResourceTitleFont + '"]K/D[/font]\nKilled Units - K/D';
+    let kdtooltip = setStringTags('K/D', CounterManager.ResourceTitleTags) + '\nKilled Units - K/D';
 
     if (!g_IsObserver) {
       for (let playerID in g_monitor_Manager.viewablePlayerStates) {
@@ -170,12 +170,12 @@ MonitorTopPanel.prototype.update = function () {
     row.kd.tooltip = kdtooltip;
 
     row.poplabel.caption = setStringTags(colorizeStat('popCount', playerState.popCount), { font: 'sans-bold-stroke-14' }) + '/' +
-      fontColor(playerState.popLimit, playerState.trainingBlocked && isBlink ? g_PopulationAlertColor : g_DefaultPopulationColor) +
+      fontColor(playerState.popLimit, playerState.trainingBlocked && isBlink ? CounterPopulation.prototype.PopulationAlertColor : CounterPopulation.prototype.DefaultPopulationColor) +
       '/' + colorizeStat('military', playerState.military);
 
-    let tooltip = '[font="' + g_ResourceTitleFont + '"]Population[/font]\nPopulation / Limit / Military';
-    if (!g_IsObserver)
-      tooltip += getAllyStatTooltip('pop', g_monitor_Manager.viewablePlayerStates, -1);
+    let tooltip = setStringTags('Population', CounterManager.ResourceTitleTags) + 'Population / Limit / Military\n';
+    //if (!g_IsObserver)
+    //  tooltip += getAllyStatTooltip('pop', g_monitor_Manager.viewablePlayerStates, -1);
     row.pop.tooltip = tooltip;
 
     row.phase.sprite = 'stretched:session/portraits/technologies/' + playerState.phase + '_phase.png';
@@ -194,7 +194,7 @@ MonitorTopPanel.prototype.updateLayout = function () {
   let gameSpeed = Engine.GetGUIObjectByName("gameSpeedButton");
   let objectives = Engine.GetGUIObjectByName("objectivesButton");
 
-  viewPlayer.hidden = !g_IsObserver && !g_DevSettings.changePerspective;
+  viewPlayer.hidden = !g_IsObserver;// && !g_DevSettings.changePerspective;
   diplomacy.hidden = !isPlayer;
   trade.hidden = !isPlayer;
   optionFollowPlayer.hidden = !(g_IsObserver && isPlayer);
@@ -214,16 +214,16 @@ MonitorTopPanel.prototype.updateLayout = function () {
     remainingWidth = nextWidth;
   }
 
-  Engine.GetGUIObjectByName("pauseButton").enabled = !g_IsObserver || !g_IsNetworked || g_IsController;
-  Engine.GetGUIObjectByName("menuResignButton").enabled = !g_IsObserver;
-  Engine.GetGUIObjectByName("lobbyButton").enabled = Engine.HasXmppClient();
+  //Engine.GetGUIObjectByName("pauseButton").enabled = !g_IsObserver || !g_IsNetworked || g_IsController;
+  //Engine.GetGUIObjectByName("menuResignButton").enabled = !g_IsObserver;
+  //Engine.GetGUIObjectByName("lobbyButton").enabled = Engine.HasXmppClient();
 
   Engine.GetGUIObjectByName("observerText").hidden = true;
   Engine.GetGUIObjectByName("followPlayerLabel").hidden = true;
-  Engine.GetGUIObjectByName("population").hidden = true;
+  //Engine.GetGUIObjectByName("population").hidden = true;
   Engine.GetGUIObjectByName("resourceCounts").hidden = true;
   Engine.GetGUIObjectByName("civIcon").hidden = true;
-  Engine.GetGUIObjectByName("alphaLabel").hidden = true;
+  Engine.GetGUIObjectByName("buildLabel").hidden = true;
 
   let chatPanel = Engine.GetGUIObjectByName("chatPanel");
   chatPanel.size = `0 70% 50%-509 100%-10`;

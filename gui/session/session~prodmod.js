@@ -50,13 +50,11 @@ const g_monitor_hotkeys = {
 };
 
 function replaceTopPanel() {
+  CivIcon.prototype.rebuild = function () { warn('nop') };
   g_monitor_TopPanel = new MonitorTopPanel();
   g_monitor_TopPanel.updateLayout();
 
   g_monitor_Manager.addPlayersChangedHandler(g_monitor_TopPanel.reset.bind(g_monitor_TopPanel));
-
-  autociv_patchApplyN("updateTopPanel", g_monitor_TopPanel.updateLayout);
-  autociv_patchApplyN("updatePlayerDisplay", function() {});
 }
 
 function monitor_init() {
@@ -73,19 +71,7 @@ function monitor_init() {
   g_monitor_Manager.addPlayersChangedHandler(g_monitor_Monitor.reset.bind(g_monitor_Monitor));
 }
 
-// TODO: Use a24 registerPlayersInitHandler
-autociv_patchApplyN("init", function(target, that, args) {
-	const result = target.apply(that, args);
-
-  monitor_init()
-
-  return result;
-});
-
-// TODO: Use a24 registerSimulationUpdateHandler
-autociv_patchApplyN("onTick", function(target, that, args) {
-	const result = target.apply(that, args);
-
+function monitor_tick() {
   g_monitor_Manager.update()
 
   if (!g_monitor_Manager.tooEarly) {
@@ -97,9 +83,10 @@ autociv_patchApplyN("onTick", function(target, that, args) {
   }
 
   g_monitor_Manager.tick()
+}
 
-  return result;
-});
+registerPlayersInitHandler(monitor_init);
+registerSimulationUpdateHandler(monitor_tick);
 
 let dragging = false;
 autociv_patchApplyN("handleInputBeforeGui", function (target, that, args)

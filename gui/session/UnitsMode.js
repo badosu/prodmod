@@ -68,17 +68,16 @@ UnitsMode.prototype.getQueues = function() {
         item['rank'] = rank;
 
       let tooltip = `${formattedPlayerName(playerState)} - ${unitNameWithRank(template.name.generic, rank)}\n`;
-      tooltip += [
-        getAttackTooltip,
-        getSplashDamageTooltip,
-        getHealerTooltip,
-        getArmorTooltip,
-        getGatherTooltip,
-        getSpeedTooltip,
-        getGarrisonTooltip,
-        getProjectilesTooltip,
-        getResourceTrickleTooltip
-      ].map(func => func(state)).filter(tip => tip).join("\n");
+      //tooltip += [
+      //  getAttackTooltip,
+      //  getHealerTooltip,
+      //  getArmorTooltip,
+      //  getGatherTooltip,
+      //  getSpeedTooltip,
+      //  getGarrisonTooltip,
+      //  getProjectilesTooltip,
+      //  getResourceTrickleTooltip
+      //].map(func => func(state)).filter(tip => tip).join("\n");
 
       item.tooltip = tooltip;
 
